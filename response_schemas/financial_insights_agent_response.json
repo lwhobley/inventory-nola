@@ -1,0 +1,96 @@
+{
+  "agent_name": "Financial Insights Agent",
+  "agent_id": "69a5b1a3f2d0d9c8063d1a47",
+  "description": "Analyzes COGS, revenue, waste costs, and gross profit data across locations and time periods. Generates narrative financial summaries with trend analysis, anomaly highlights, and actionable recommendations for executives.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "executive_summary": "string",
+    "key_metrics": [
+      {
+        "name": "string",
+        "value": "string",
+        "trend": "string",
+        "status": "string"
+      }
+    ],
+    "location_performance": [
+      {
+        "location": "string",
+        "revenue": "string",
+        "cogs": "string",
+        "gross_profit_margin": "string",
+        "waste_percentage": "string",
+        "status": "string"
+      }
+    ],
+    "trend_analysis": [
+      {
+        "metric": "string",
+        "direction": "string",
+        "details": "string"
+      }
+    ],
+    "anomalies": [
+      {
+        "description": "string",
+        "severity": "string",
+        "affected_location": "string",
+        "recommended_action": "string"
+      }
+    ],
+    "recommendations": [
+      {
+        "priority": "string",
+        "title": "string",
+        "description": "string",
+        "estimated_impact": "string"
+      }
+    ]
+  },
+  "example_response": {
+    "executive_summary": "sample string",
+    "key_metrics": [
+      {
+        "name": "sample string",
+        "value": "sample string",
+        "trend": "sample string",
+        "status": "sample string"
+      }
+    ],
+    "location_performance": [
+      {
+        "location": "sample string",
+        "revenue": "sample string",
+        "cogs": "sample string",
+        "gross_profit_margin": "sample string",
+        "waste_percentage": "sample string",
+        "status": "sample string"
+      }
+    ],
+    "trend_analysis": [
+      {
+        "metric": "sample string",
+        "direction": "sample string",
+        "details": "sample string"
+      }
+    ],
+    "anomalies": [
+      {
+        "description": "sample string",
+        "severity": "sample string",
+        "affected_location": "sample string",
+        "recommended_action": "sample string"
+      }
+    ],
+    "recommendations": [
+      {
+        "priority": "sample string",
+        "title": "sample string",
+        "description": "sample string",
+        "estimated_impact": "sample string"
+      }
+    ]
+  }
+}

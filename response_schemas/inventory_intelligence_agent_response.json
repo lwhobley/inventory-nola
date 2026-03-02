@@ -1,0 +1,88 @@
+{
+  "agent_name": "Inventory Intelligence Agent",
+  "agent_id": "69a5b1a33fe08f1e2b19b91e",
+  "description": "Analyzes inventory levels, sales velocity, and depletion patterns for a specific location. Identifies items at risk of stockout, suggests optimal reorder quantities, and flags unusual consumption patterns.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "summary": "string",
+    "overall_health_score": "string",
+    "critical_items": [
+      {
+        "item_name": "string",
+        "current_stock": "string",
+        "daily_usage": "string",
+        "days_remaining": "string",
+        "risk_level": "string"
+      }
+    ],
+    "reorder_suggestions": [
+      {
+        "item_name": "string",
+        "current_stock": "string",
+        "daily_usage": "string",
+        "days_remaining": "string",
+        "suggested_order_qty": "string",
+        "urgency": "string"
+      }
+    ],
+    "consumption_anomalies": [
+      {
+        "item_name": "string",
+        "expected_usage": "string",
+        "actual_usage": "string",
+        "deviation_percentage": "string",
+        "possible_cause": "string"
+      }
+    ],
+    "excess_stock_alerts": [
+      {
+        "item_name": "string",
+        "current_stock": "string",
+        "days_until_expiry": "string",
+        "recommended_action": "string"
+      }
+    ]
+  },
+  "example_response": {
+    "summary": "sample string",
+    "overall_health_score": "sample string",
+    "critical_items": [
+      {
+        "item_name": "sample string",
+        "current_stock": "sample string",
+        "daily_usage": "sample string",
+        "days_remaining": "sample string",
+        "risk_level": "sample string"
+      }
+    ],
+    "reorder_suggestions": [
+      {
+        "item_name": "sample string",
+        "current_stock": "sample string",
+        "daily_usage": "sample string",
+        "days_remaining": "sample string",
+        "suggested_order_qty": "sample string",
+        "urgency": "sample string"
+      }
+    ],
+    "consumption_anomalies": [
+      {
+        "item_name": "sample string",
+        "expected_usage": "sample string",
+        "actual_usage": "sample string",
+        "deviation_percentage": "sample string",
+        "possible_cause": "sample string"
+      }
+    ],
+    "excess_stock_alerts": [
+      {
+        "item_name": "sample string",
+        "current_stock": "sample string",
+        "days_until_expiry": "sample string",
+        "recommended_action": "sample string"
+      }
+    ]
+  }
+}

@@ -1,0 +1,100 @@
+{
+  "agent_name": "Variance Analyst Agent",
+  "agent_id": "69a5b1a38413529629dda599",
+  "description": "Compares theoretical stock (POS-derived expected levels) against physical count data. Identifies systematic discrepancies, categorizes variance causes (waste, theft, counting errors, POS mapping issues), and ranks locations by variance severity.",
+  "agent_type": "json",
+  "accessor": "result",
+  "auto_generated": true,
+  "response_schema": {
+    "summary": "string",
+    "total_variance_value": "string",
+    "variance_by_category": [
+      {
+        "category": "string",
+        "count": "string",
+        "total_value": "string",
+        "percentage_of_total": "string"
+      }
+    ],
+    "top_variance_items": [
+      {
+        "item_name": "string",
+        "theoretical_qty": "string",
+        "physical_qty": "string",
+        "variance_qty": "string",
+        "variance_percentage": "string",
+        "dollar_impact": "string",
+        "likely_cause": "string"
+      }
+    ],
+    "location_ranking": [
+      {
+        "location": "string",
+        "total_variance_value": "string",
+        "item_count": "string",
+        "severity": "string"
+      }
+    ],
+    "patterns_identified": [
+      {
+        "pattern": "string",
+        "evidence": "string",
+        "confidence": "string"
+      }
+    ],
+    "recommended_actions": [
+      {
+        "priority": "string",
+        "action": "string",
+        "rationale": "string",
+        "expected_outcome": "string"
+      }
+    ]
+  },
+  "example_response": {
+    "summary": "sample string",
+    "total_variance_value": "sample string",
+    "variance_by_category": [
+      {
+        "category": "sample string",
+        "count": "sample string",
+        "total_value": "sample string",
+        "percentage_of_total": "sample string"
+      }
+    ],
+    "top_variance_items": [
+      {
+        "item_name": "sample string",
+        "theoretical_qty": "sample string",
+        "physical_qty": "sample string",
+        "variance_qty": "sample string",
+        "variance_percentage": "sample string",
+        "dollar_impact": "sample string",
+        "likely_cause": "sample string"
+      }
+    ],
+    "location_ranking": [
+      {
+        "location": "sample string",
+        "total_variance_value": "sample string",
+        "item_count": "sample string",
+        "severity": "sample string"
+      }
+    ],
+    "patterns_identified": [
+      {
+        "pattern": "sample string",
+        "evidence": "sample string",
+        "confidence": "sample string"
+      }
+    ],
+    "recommended_actions": [
+      {
+        "priority": "sample string",
+        "action": "sample string",
+        "rationale": "sample string",
+        "expected_outcome": "sample string"
+      }
+    ]
+  }
+}

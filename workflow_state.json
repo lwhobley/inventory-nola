@@ -1,0 +1,19 @@
+{
+  "agents": {
+    "financial_agent": {
+      "agent_id": "69a5b1a3f2d0d9c8063d1a47",
+      "name": "Financial Insights Agent",
+      "node_id": "financial_agent"
+    },
+    "inventory_agent": {
+      "agent_id": "69a5b1a33fe08f1e2b19b91e",
+      "name": "Inventory Intelligence Agent",
+      "node_id": "inventory_agent"
+    },
+    "variance_agent": {
+      "agent_id": "69a5b1a38413529629dda599",
+      "name": "Variance Analyst Agent",
+      "node_id": "variance_agent"
+    }
+  }
+}

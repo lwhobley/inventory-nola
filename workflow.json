@@ -1,0 +1,74 @@
+{
+  "nodes": [
+    {
+      "id": "input_node",
+      "type": "Input",
+      "label": "User Query",
+      "nodeCategory": "input"
+    },
+    {
+      "id": "financial_agent",
+      "type": "Agent",
+      "label": "Financial Insights Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "inventory_agent",
+      "type": "Agent",
+      "label": "Inventory Intelligence Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "variance_agent",
+      "type": "Agent",
+      "label": "Variance Analyst Agent",
+      "nodeCategory": "agent"
+    },
+    {
+      "id": "output_node",
+      "type": "Output",
+      "label": "Agent Response",
+      "nodeCategory": "end"
+    }
+  ],
+  "edges": [
+    { "source": "input_node", "target": "financial_agent" },
+    { "source": "input_node", "target": "inventory_agent" },
+    { "source": "input_node", "target": "variance_agent" },
+    { "source": "financial_agent", "target": "output_node" },
+    { "source": "inventory_agent", "target": "output_node" },
+    { "source": "variance_agent", "target": "output_node" }
+  ],
+  "agents": {
+    "financial_agent": {
+      "agent_id": "69a5b1a3f2d0d9c8063d1a47",
+      "name": "Financial Insights Agent",
+      "model": "claude-sonnet-4-5",
+      "provider": "Anthropic",
+      "temperature": 0.3,
+      "top_p": 1,
+      "agent_type": "json",
+      "capabilities": ["text"]
+    },
+    "inventory_agent": {
+      "agent_id": "69a5b1a33fe08f1e2b19b91e",
+      "name": "Inventory Intelligence Agent",
+      "model": "claude-sonnet-4-5",
+      "provider": "Anthropic",
+      "temperature": 0.3,
+      "top_p": 1,
+      "agent_type": "json",
+      "capabilities": ["text"]
+    },
+    "variance_agent": {
+      "agent_id": "69a5b1a38413529629dda599",
+      "name": "Variance Analyst Agent",
+      "model": "claude-sonnet-4-5",
+      "provider": "Anthropic",
+      "temperature": 0.3,
+      "top_p": 1,
+      "agent_type": "json",
+      "capabilities": ["text"]
+    }
+  }
+}
