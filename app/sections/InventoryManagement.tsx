@@ -110,10 +110,14 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
   const loadInventory = async () => {
     try {
       const supabase = getSupabaseAdmin();
-      const { data, error: err } = await supabase
-        .from('inventory_items')
-        .select('*')
-        .eq('location', selectedLocation);
+      let query = supabase.from('inventory_items').select('*');
+      
+      // Only filter by location if not "All Locations"
+      if (selectedLocation !== 'All Locations') {
+        query = query.eq('location', selectedLocation);
+      }
+      
+      const { data, error: err } = await query;
       
       if (err) {
         // If table doesn't exist or permission error, start with empty list
@@ -125,6 +129,7 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
       
       setInventory(data || []);
       setError('');
+      console.log(`Loaded ${data?.length || 0} items for location: ${selectedLocation}`);
     } catch (err) {
       console.error('Inventory load error:', err);
       // Don't show error if table doesn't exist yet - just start with empty
@@ -210,6 +215,12 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
   };
 
   const handleAddItem = async () => {
+    // Don't allow adding items to "All Locations"
+    if (selectedLocation === 'All Locations') {
+      setError('Please select a specific location to add items');
+      return;
+    }
+    
     if (!newItem.name || !newItem.category || !newItem.unit || newItem.current_stock === undefined || newItem.par_level === undefined) {
       setError('Please fill in all fields');
       return;
@@ -258,7 +269,11 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
         <div className="flex items-center gap-2">
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-teal-600 hover:bg-teal-700">
+              <Button 
+                className="gap-2 bg-teal-600 hover:bg-teal-700" 
+                disabled={selectedLocation === 'All Locations'}
+                title={selectedLocation === 'All Locations' ? 'Select a specific location first' : 'Add a new inventory item'}
+              >
                 <Plus className="w-4 h-4" /> Add Item
               </Button>
             </DialogTrigger>
