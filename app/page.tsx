@@ -5,6 +5,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/auth-context';
+import { LogOut, User, Lock } from 'lucide-react';
 import { MdDashboard, MdInventory, MdPointOfSale, MdAttachMoney, MdCompareArrows, MdDelete } from 'react-icons/md';
 
 import Sidebar from './sections/Sidebar';
@@ -14,6 +17,7 @@ import POSSync from './sections/POSSync';
 import FinancialDashboard from './sections/FinancialDashboard';
 import VarianceReports from './sections/VarianceReports';
 import WasteTracker from './sections/WasteTracker';
+import StaffManagement from './staff/page';
 
 const AGENTS = [
   { id: '69a5b1a3f2d0d9c8063d1a47', name: 'Financial Insights', purpose: 'COGS & revenue analysis', tab: 'financial' },
@@ -65,6 +69,7 @@ export default function Page() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
   const [showSample, setShowSample] = useState(false);
+  const { currentUser, logout, isOwner } = useAuth();
 
   return (
     <ErrorBoundary>
@@ -79,6 +84,7 @@ export default function Page() {
         />
 
         <main className="flex-1 overflow-auto">
+          {/* Top Header with User Info */}
           <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3 pl-10 md:pl-0">
               {activeTab === 'dashboard' && <MdDashboard className="w-5 h-5 text-teal-600" />}
@@ -91,10 +97,35 @@ export default function Page() {
                 {activeTab === 'pos' ? 'POS Sales' : activeTab === 'financial' ? 'Financial Reports' : activeTab === 'variance' ? 'Variance Analysis' : activeTab === 'waste' ? 'Waste Tracker' : activeTab}
               </span>
             </div>
+            
+            {/* User Info and Controls */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Label htmlFor="sample-toggle" className="text-xs text-slate-500">Sample Data</Label>
                 <Switch id="sample-toggle" checked={showSample} onCheckedChange={setShowSample} />
+              </div>
+              
+              {/* User Profile */}
+              <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+                <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                  <User className="w-4 h-4 text-teal-700" />
+                </div>
+                <div className="hidden sm:block text-sm">
+                  <p className="font-medium text-slate-900">{currentUser?.name}</p>
+                  <p className="text-xs text-slate-500 capitalize flex items-center gap-1">
+                    {isOwner && <Lock className="w-3 h-3" />}
+                    {currentUser?.role}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  className="ml-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -105,6 +136,7 @@ export default function Page() {
           {activeTab === 'financial' && <FinancialDashboard selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'variance' && <VarianceReports selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'waste' && <WasteTracker selectedLocation={selectedLocation} />}
+          {activeTab === 'staff' && <StaffManagement />}
 
           <div className="px-6 py-4 border-t border-slate-200 bg-white">
             <Card className="border-slate-200 shadow-sm">

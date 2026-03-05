@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useAuth } from '@/lib/auth-context';
 import { FaTree } from 'react-icons/fa';
 import {
   MdDashboard,
@@ -11,6 +12,7 @@ import {
   MdDelete,
   MdMenu,
   MdClose,
+  MdPeople,
 } from 'react-icons/md';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -49,6 +51,17 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
 }: SidebarProps) {
+  const { isOwner } = useAuth();
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: MdDashboard },
+    { id: 'inventory', label: 'Inventory', icon: MdInventory },
+    { id: 'pos', label: 'POS Sales', icon: MdPointOfSale },
+    { id: 'financial', label: 'Financial Reports', icon: MdAttachMoney },
+    { id: 'variance', label: 'Variance Analysis', icon: MdCompareArrows },
+    { id: 'waste', label: 'Waste Tracker', icon: MdDelete },
+    ...(isOwner ? [{ id: 'staff', label: 'Staff Management', icon: MdPeople }] : []),
+  ];
   return (
     <>
       <button
@@ -81,7 +94,7 @@ export default function Sidebar({
         </div>
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (

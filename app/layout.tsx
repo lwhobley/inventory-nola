@@ -5,12 +5,14 @@ import './globals.css'
 import { IframeLoggerInit } from '@/components/IframeLoggerInit'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { AgentInterceptorProvider } from '@/components/AgentInterceptorProvider'
+import { AuthProvider } from '@/lib/auth-context'
+import LayoutWrapper from '@/components/LayoutWrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Next.js App',
-  description: 'Built with Next.js, React, and Tailwind CSS',
+  title: 'Park Sync - NOLA City Park Inventory',
+  description: 'Inventory and operations management for New Orleans City Park',
   icons: {
     icon: '/lyzr.png',
   },
@@ -27,9 +29,13 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <IframeLoggerInit />
         <ErrorBoundary>
-          <AgentInterceptorProvider>
-            {children}
-          </AgentInterceptorProvider>
+          <AuthProvider>
+            <AgentInterceptorProvider>
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
+            </AgentInterceptorProvider>
+          </AuthProvider>
         </ErrorBoundary>
         {/* Architect Badge — architect.new */}
         {!isPaidUser && <Script id="architect-badge" strategy="afterInteractive">{`
