@@ -25,9 +25,9 @@ const AGENTS = [
 ];
 
 const TAB_ICONS: Record<string, React.ReactNode> = {
-  financial: <MdAttachMoney className="w-3.5 h-3.5" />,
-  inventory: <MdInventory className="w-3.5 h-3.5" />,
-  variance: <MdCompareArrows className="w-3.5 h-3.5" />,
+  financial: <DollarSign className="w-3.5 h-3.5" />,
+  inventory: <Package className="w-3.5 h-3.5" />,
+  variance: <BarChart3 className="w-3.5 h-3.5" />,
 };
 
 class ErrorBoundary extends React.Component<
