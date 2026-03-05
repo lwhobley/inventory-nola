@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { cache, cacheKeys, rateLimit } from '@/lib/redis'
 
 /**
@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Query Supabase
-    const { data: users, error } = await supabaseAdmin
+    const supabase = getSupabaseAdmin()
+    const { data: users, error } = await supabase
       .from('staff_users')
       .select('*')
       .eq('pin', pin)
@@ -97,7 +98,8 @@ export async function DELETE(request: NextRequest) {
     await cache.delete(cacheKeys.user(userId))
 
     // Log logout event
-    await supabaseAdmin.from('session_logs').insert({
+    const supabase = getSupabaseAdmin()
+    await supabase.from('session_logs').insert({
       user_id: userId,
       logout_time: new Date().toISOString(),
     })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cache, cacheKeys, rateLimit } from '@/lib/redis'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdmin } from '@/lib/supabase'
 import { cloudflareAnalytics } from '@/lib/cloudflare'
 import crypto from 'crypto'
 
@@ -261,7 +261,8 @@ export async function POST(request: NextRequest) {
 
     // Log to Supabase
     try {
-      await supabaseAdmin.from('analysis_results').insert({
+      const supabase = getSupabaseAdmin()
+      await supabase.from('analysis_results').insert({
         user_id: userId,
         agent_id,
         agent_name: agentConfig.name,
