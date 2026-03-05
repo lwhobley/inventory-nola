@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Search, RefreshCw, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Package, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, RefreshCw, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Package, AlertCircle, Plus, Save, X } from 'lucide-react';
 import { callAIAgent } from '@/lib/aiAgent';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 interface InventoryManagementProps {
   selectedLocation: string;
@@ -19,32 +21,20 @@ interface InventoryManagementProps {
   setActiveAgentId: (id: string | null) => void;
 }
 
+interface InventoryItem {
+  id?: string;
+  name: string;
+  category: string;
+  current_stock: number;
+  unit: string;
+  par_level: number;
+  location: string;
+  status: string;
+  last_updated?: string;
+}
+
 const AGENT_ID = '69a5b1a33fe08f1e2b19b91e';
-
 const CATEGORIES = ['All', 'Beverages', 'Food Items', 'Supplies', 'Ingredients'];
-
-const INVENTORY_DATA = [
-  { name: 'Beignet Mix', category: 'Ingredients', stock: 12, unit: 'lbs', par: 50, status: 'Critical', updated: '10:30 AM' },
-  { name: 'Coffee Beans', category: 'Beverages', stock: 28, unit: 'lbs', par: 40, status: 'Low', updated: '10:30 AM' },
-  { name: 'Whole Milk', category: 'Beverages', stock: 18, unit: 'gal', par: 25, status: 'Low', updated: '10:30 AM' },
-  { name: 'Powdered Sugar', category: 'Ingredients', stock: 35, unit: 'lbs', par: 30, status: 'In Stock', updated: '10:30 AM' },
-  { name: 'Frying Oil', category: 'Ingredients', stock: 8, unit: 'gal', par: 20, status: 'Critical', updated: '10:30 AM' },
-  { name: 'Hot Dog Franks', category: 'Food Items', stock: 96, unit: 'units', par: 100, status: 'In Stock', updated: '9:45 AM' },
-  { name: 'Hot Dog Buns', category: 'Food Items', stock: 48, unit: 'units', par: 100, status: 'Low', updated: '9:45 AM' },
-  { name: 'Soft Drink Syrup', category: 'Beverages', stock: 3, unit: 'gal', par: 15, status: 'Critical', updated: '9:45 AM' },
-  { name: 'Ice Cream (Vanilla)', category: 'Food Items', stock: 42, unit: 'scoops', par: 80, status: 'Low', updated: '9:00 AM' },
-  { name: 'Ice Cream (Chocolate)', category: 'Food Items', stock: 65, unit: 'scoops', par: 60, status: 'In Stock', updated: '9:00 AM' },
-  { name: 'Nachos Chips', category: 'Food Items', stock: 24, unit: 'bags', par: 20, status: 'In Stock', updated: '9:00 AM' },
-  { name: 'Nacho Cheese', category: 'Ingredients', stock: 6, unit: 'lbs', par: 10, status: 'Low', updated: '9:00 AM' },
-  { name: 'Draft Beer (Abita)', category: 'Beverages', stock: 48, unit: 'pints', par: 50, status: 'In Stock', updated: '8:30 AM' },
-  { name: 'Rum', category: 'Beverages', stock: 3, unit: 'bottles', par: 8, status: 'Critical', updated: '8:30 AM' },
-  { name: 'Lemonade Mix', category: 'Beverages', stock: 5, unit: 'gal', par: 10, status: 'Low', updated: '8:30 AM' },
-  { name: 'Cotton Candy Sugar', category: 'Ingredients', stock: 20, unit: 'lbs', par: 15, status: 'Overstocked', updated: '8:30 AM' },
-  { name: 'Popcorn Kernels', category: 'Ingredients', stock: 18, unit: 'lbs', par: 12, status: 'Overstocked', updated: '8:30 AM' },
-  { name: 'Paper Cups (12oz)', category: 'Supplies', stock: 450, unit: 'units', par: 500, status: 'In Stock', updated: '8:00 AM' },
-  { name: 'Paper Cups (16oz)', category: 'Supplies', stock: 380, unit: 'units', par: 500, status: 'Low', updated: '8:00 AM' },
-  { name: 'Napkins', category: 'Supplies', stock: 2000, unit: 'units', par: 1500, status: 'Overstocked', updated: '8:00 AM' },
-];
 
 interface InventoryAnalysis {
   summary?: string;
@@ -55,13 +45,23 @@ interface InventoryAnalysis {
   excess_stock_alerts?: Array<{ item_name?: string; current_stock?: string; days_until_expiry?: string; recommended_action?: string }>;
 }
 
-function parseAgentResponse(result: ReturnType<typeof callAIAgent> extends Promise<infer T> ? T : never) {
+function parseAgentResponse(result: any) {
   if (!result?.success) return null;
   let data = result?.response?.result;
-  if (typeof data === 'string') {
-    try { data = JSON.parse(data); } catch { try { data = JSON.parse(JSON.parse(data)); } catch { return null; } }
+  
+  // Handle multiple levels of nesting
+  while (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      break;
+    }
   }
+  
+  // Extract from common wrappers
   if (data?.result && typeof data.result === 'object') data = data.result;
+  if (data?.response && typeof data.response === 'object' && !Array.isArray(data.response)) data = data.response;
+  
   return data as InventoryAnalysis;
 }
 
@@ -79,7 +79,16 @@ function urgencyColor(u: string) {
   return 'border-green-200 bg-green-50 text-green-700';
 }
 
+function calculateStatus(stock: number, par: number): string {
+  if (stock === 0) return 'Critical';
+  if (stock < par * 0.3) return 'Critical';
+  if (stock < par * 0.7) return 'Low';
+  if (stock > par * 1.5) return 'Overstocked';
+  return 'In Stock';
+}
+
 export default function InventoryManagement({ selectedLocation, activeAgentId, setActiveAgentId }: InventoryManagementProps) {
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [showCount, setShowCount] = useState(false);
@@ -87,9 +96,39 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<InventoryAnalysis | null>(null);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ critical: true, reorder: true, anomalies: false, excess: false });
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newItem, setNewItem] = useState<Partial<InventoryItem>>({ category: 'Beverages', unit: 'units', location: selectedLocation });
+  const [savingCounts, setSavingCounts] = useState(false);
 
-  const filtered = INVENTORY_DATA.filter((item) => {
+  // Load inventory from Supabase
+  useEffect(() => {
+    loadInventory();
+  }, [selectedLocation]);
+
+  const loadInventory = async () => {
+    try {
+      const supabase = getSupabaseAdmin();
+      const { data, error: err } = await supabase
+        .from('inventory_items')
+        .select('*')
+        .eq('location', selectedLocation);
+      
+      if (err) {
+        setError('Failed to load inventory');
+        return;
+      }
+      
+      setInventory(data || []);
+      setError('');
+    } catch (err) {
+      console.error('Inventory load error:', err);
+      setError('Failed to load inventory from database');
+    }
+  };
+
+  const filtered = inventory.filter((item) => {
     const matchCat = category === 'All' || item.category === category;
     const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -99,17 +138,107 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
     setLoading(true);
     setError('');
     setActiveAgentId(AGENT_ID);
-    const inventorySummary = INVENTORY_DATA.map((i) => `${i.name}: ${i.stock} ${i.unit} (par: ${i.par}, status: ${i.status})`).join('\n');
+    
+    const inventorySummary = inventory
+      .map((i) => `${i.name}: ${i.current_stock} ${i.unit} (par: ${i.par_level}, status: ${calculateStatus(i.current_stock, i.par_level)})`)
+      .join('\n');
+    
     const message = `Analyze inventory levels for ${selectedLocation}. Current inventory:\n${inventorySummary}\n\nProvide health score, critical items, reorder suggestions, consumption anomalies, and excess stock alerts.`;
+    
     try {
       const result = await callAIAgent(message, AGENT_ID);
       const parsed = parseAgentResponse(result);
-      if (parsed) { setAnalysis(parsed); } else { setError('Failed to parse analysis results.'); }
-    } catch {
+      if (parsed) {
+        setAnalysis(parsed);
+      } else {
+        setError('Failed to parse analysis results.');
+      }
+    } catch (err) {
       setError('Failed to run inventory analysis. Please try again.');
+      console.error(err);
     }
+    
     setLoading(false);
     setActiveAgentId(null);
+  };
+
+  const handleSaveCounts = async () => {
+    setSavingCounts(true);
+    setError('');
+    setSuccessMessage('');
+    
+    try {
+      const supabase = getSupabaseAdmin();
+      
+      for (const [itemName, count] of Object.entries(countValues)) {
+        if (count && count !== '') {
+          const item = inventory.find(i => i.name === itemName);
+          if (item) {
+            const { error: err } = await supabase
+              .from('inventory_items')
+              .update({
+                current_stock: parseInt(count),
+                last_updated: new Date().toISOString(),
+              })
+              .eq('id', item.id);
+            
+            if (err) {
+              setError(`Failed to update ${itemName}`);
+              return;
+            }
+          }
+        }
+      }
+      
+      setSuccessMessage('Counts saved successfully!');
+      setCountValues({});
+      setShowCount(false);
+      await loadInventory();
+      
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError('Failed to save counts. Please try again.');
+      console.error(err);
+    }
+    
+    setSavingCounts(false);
+  };
+
+  const handleAddItem = async () => {
+    if (!newItem.name || !newItem.category || !newItem.unit || newItem.current_stock === undefined || newItem.par_level === undefined) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
+    try {
+      const supabase = getSupabaseAdmin();
+      const { error: err } = await supabase
+        .from('inventory_items')
+        .insert([{
+          name: newItem.name,
+          category: newItem.category,
+          unit: newItem.unit,
+          current_stock: parseInt(String(newItem.current_stock)),
+          par_level: parseInt(String(newItem.par_level)),
+          location: selectedLocation,
+          status: calculateStatus(parseInt(String(newItem.current_stock)), parseInt(String(newItem.par_level))),
+        }]);
+      
+      if (err) {
+        setError(`Failed to add item: ${err.message}`);
+        return;
+      }
+      
+      setSuccessMessage('Item added successfully!');
+      setNewItem({ category: 'Beverages', unit: 'units', location: selectedLocation });
+      setShowAddDialog(false);
+      await loadInventory();
+      
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (err) {
+      setError('Failed to add item. Please try again.');
+      console.error(err);
+    }
   };
 
   const toggle = (key: string) => setOpenSections((p) => ({ ...p, [key]: !p[key] }));
@@ -121,88 +250,147 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
           <h2 className="text-2xl font-bold text-slate-900">Inventory Management</h2>
           <p className="text-sm text-slate-500 mt-0.5">{selectedLocation}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowCount(!showCount)} className="border-slate-200">
-            <Package className="w-4 h-4 mr-1.5" /> {showCount ? 'Close Count' : 'Morning Count'}
-          </Button>
-          <Button onClick={handleAnalyze} disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">
-            {loading ? <><RefreshCw className="w-4 h-4 mr-1.5 animate-spin" /> Analyzing...</> : <><Search className="w-4 h-4 mr-1.5" /> Analyze Inventory</>}
-          </Button>
-        </div>
-      </div>
-
-      {showCount && (
-        <Card className="border-teal-200 shadow-sm bg-teal-50/30">
-          <CardHeader className="pb-3"><CardTitle className="text-base text-slate-900">Morning Physical Count</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              {INVENTORY_DATA.slice(0, 8).map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <Label className="text-xs text-slate-600 w-28 truncate">{item.name}</Label>
-                  <Input type="number" placeholder={String(item.stock)} value={countValues[item.name] ?? ''} onChange={(e) => setCountValues((p) => ({ ...p, [item.name]: e.target.value }))} className="h-8 w-20 text-xs bg-white" />
-                  <span className="text-xs text-slate-400">{item.unit}</span>
+        <div className="flex items-center gap-2">
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-teal-600 hover:bg-teal-700">
+                <Plus className="w-4 h-4" /> Add Item
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Inventory Item</DialogTitle>
+                <DialogDescription>Add a new item to your inventory</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Item Name</Label>
+                  <Input value={newItem.name || ''} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} placeholder="e.g., Coffee Beans" />
                 </div>
-              ))}
-            </div>
-            <Button className="mt-3 bg-teal-600 hover:bg-teal-700 text-white text-sm">Save Counts</Button>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
-        </div>
-        <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger className="w-40 h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-        </Select>
-        <div className="flex gap-2 text-xs text-slate-500">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400" /> {INVENTORY_DATA.filter((i) => i.status === 'Critical').length} Critical</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400" /> {INVENTORY_DATA.filter((i) => i.status === 'Low').length} Low</span>
+                <div>
+                  <Label>Category</Label>
+                  <Select value={newItem.category || 'Beverages'} onValueChange={(v) => setNewItem({ ...newItem, category: v })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.filter(c => c !== 'All').map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Current Stock</Label>
+                    <Input type="number" value={newItem.current_stock || 0} onChange={(e) => setNewItem({ ...newItem, current_stock: parseInt(e.target.value) })} />
+                  </div>
+                  <div>
+                    <Label>Unit</Label>
+                    <Input value={newItem.unit || 'units'} onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })} />
+                  </div>
+                </div>
+                <div>
+                  <Label>Par Level</Label>
+                  <Input type="number" value={newItem.par_level || 0} onChange={(e) => setNewItem({ ...newItem, par_level: parseInt(e.target.value) })} />
+                </div>
+                <Button onClick={handleAddItem} className="w-full bg-teal-600 hover:bg-teal-700">Add Item</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Button onClick={handleAnalyze} disabled={loading} className="gap-2">
+            {loading ? 'Analyzing...' : 'Generate Report'}
+          </Button>
         </div>
       </div>
+
+      {error && <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>}
+      {successMessage && <div className="p-3 rounded-lg bg-green-50 text-green-700 text-sm border border-green-200">{successMessage}</div>}
 
       <Card className="border-slate-200 shadow-sm">
-        <CardContent className="p-0">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 relative">
+              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Input placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+            </div>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map(cat => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant={showCount ? 'default' : 'outline'} onClick={() => setShowCount(!showCount)}>
+              {showCount ? 'Hide Counts' : 'Count Items'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-xs">Item Name</TableHead>
                   <TableHead className="text-xs">Category</TableHead>
-                  <TableHead className="text-xs">Stock</TableHead>
-                  <TableHead className="text-xs">Unit</TableHead>
-                  <TableHead className="text-xs">Par Level</TableHead>
-                  <TableHead className="text-xs">Fill %</TableHead>
+                  <TableHead className="text-xs text-right">Stock</TableHead>
+                  <TableHead className="text-xs text-right">Par</TableHead>
+                  <TableHead className="text-xs text-right">% of Par</TableHead>
                   <TableHead className="text-xs">Status</TableHead>
-                  <TableHead className="text-xs">Updated</TableHead>
+                  {showCount && <TableHead className="text-xs">New Count</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((item) => {
-                  const fillPct = Math.min(100, Math.round((item.stock / item.par) * 100));
+                  const percentage = Math.round((item.current_stock / item.par_level) * 100);
+                  const status = calculateStatus(item.current_stock, item.par_level);
                   return (
-                    <TableRow key={item.name}>
-                      <TableCell className="text-xs font-medium text-slate-800">{item.name}</TableCell>
-                      <TableCell className="text-xs text-slate-600">{item.category}</TableCell>
-                      <TableCell className={`text-xs font-semibold ${item.status === 'Critical' ? 'text-red-600' : 'text-slate-900'}`}>{item.stock}</TableCell>
-                      <TableCell className="text-xs text-slate-500">{item.unit}</TableCell>
-                      <TableCell className="text-xs text-slate-500">{item.par}</TableCell>
-                      <TableCell className="text-xs"><div className="flex items-center gap-2"><Progress value={fillPct} className="h-1.5 w-16" /><span className="text-slate-500">{fillPct}%</span></div></TableCell>
-                      <TableCell><Badge variant="outline" className={`text-xs ${statusColor(item.status)}`}>{item.status}</Badge></TableCell>
-                      <TableCell className="text-xs text-slate-400">{item.updated}</TableCell>
+                    <TableRow key={item.id || item.name}>
+                      <TableCell className="text-xs font-medium">{item.name}</TableCell>
+                      <TableCell className="text-xs text-slate-500">{item.category}</TableCell>
+                      <TableCell className="text-xs text-right">{item.current_stock} {item.unit}</TableCell>
+                      <TableCell className="text-xs text-right">{item.par_level}</TableCell>
+                      <TableCell className="text-xs text-right">
+                        <Progress value={Math.min(percentage, 200)} className="w-12 h-2" />
+                        <span className={percentage > 150 ? 'text-blue-600' : percentage > 70 ? 'text-green-600' : percentage > 30 ? 'text-amber-600' : 'text-red-600'}>{percentage}%</span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={statusColor(status)}>
+                          {status}
+                        </Badge>
+                      </TableCell>
+                      {showCount && (
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={countValues[item.name] || ''}
+                            onChange={(e) => setCountValues({ ...countValues, [item.name]: e.target.value })}
+                            placeholder="New count"
+                            className="w-20 h-8 text-xs"
+                          />
+                        </TableCell>
+                      )}
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
           </div>
+          
+          {showCount && (
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowCount(false)}>Cancel</Button>
+              <Button onClick={handleSaveCounts} disabled={savingCounts} className="gap-2 bg-teal-600 hover:bg-teal-700">
+                <Save className="w-4 h-4" /> {savingCounts ? 'Saving...' : 'Save Counts'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      {error && <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>}
 
       {analysis && (
         <div className="space-y-4">

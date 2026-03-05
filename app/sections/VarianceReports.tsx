@@ -52,13 +52,24 @@ interface VarianceAnalysis {
   recommended_actions?: Array<{ priority?: string; action?: string; rationale?: string; expected_outcome?: string }>;
 }
 
-function parseAgentResponse(result: ReturnType<typeof callAIAgent> extends Promise<infer T> ? T : never) {
+function parseAgentResponse(result: any) {
   if (!result?.success) return null;
   let data = result?.response?.result;
-  if (typeof data === 'string') {
-    try { data = JSON.parse(data); } catch { try { data = JSON.parse(JSON.parse(data)); } catch { return null; } }
+  
+  // Handle multiple levels of nesting
+  while (typeof data === 'string') {
+    try {
+      data = JSON.parse(data);
+    } catch {
+      break;
+    }
   }
-  if (data?.result && typeof data.result === 'object') data = data.result;
+  
+  // Extract from common wrappers
+  if (data?.result && typeof data.result === 'object' && !Array.isArray(data.result)) data = data.result;
+  if (data?.response && typeof data.response === 'object' && !Array.isArray(data.response)) data = data.response;
+  if (data?.data && typeof data.data === 'object' && !Array.isArray(data.data)) data = data.data;
+  
   return data as VarianceAnalysis;
 }
 
