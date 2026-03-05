@@ -14,15 +14,6 @@ interface SidebarProps {
   setMobileOpen: (open: boolean) => void;
 }
 
-const NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard', icon: MdDashboard },
-  { id: 'inventory', label: 'Inventory', icon: MdInventory },
-  { id: 'pos', label: 'POS Sales', icon: MdPointOfSale },
-  { id: 'financial', label: 'Financial Reports', icon: MdAttachMoney },
-  { id: 'variance', label: 'Variance Analysis', icon: MdCompareArrows },
-  { id: 'waste', label: 'Waste Tracker', icon: MdDelete },
-];
-
 const LOCATIONS = [
   'All Locations',
   'Cafe du Monde Kiosk',

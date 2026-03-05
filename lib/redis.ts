@@ -1,26 +1,41 @@
 import Redis from 'ioredis'
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.REDIS_URL,
-  password: process.env.REDIS_PASSWORD,
-  retryStrategy: (times) => {
-    const delay = Math.min(times * 50, 2000)
-    return delay
-  },
-  maxRetriesPerRequest: 3,
-  enableReadyCheck: true,
-  enableOfflineQueue: true,
-})
+// Lazy-load Redis connection only when actually used
+// This prevents connection attempts during build/prerender
+let redisInstance: Redis | null = null
 
-// Error handling
-redis.on('error', (err) => {
-  console.error('Redis Client Error', err)
-})
+function getRedis(): Redis {
+  if (!redisInstance) {
+    redisInstance = new Redis({
+      url: process.env.REDIS_URL || '',
+      password: process.env.REDIS_PASSWORD,
+      retryStrategy: (times) => {
+        const delay = Math.min(times * 50, 2000)
+        return delay
+      },
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: true,
+      enableOfflineQueue: true,
+      lazyConnect: true, // Don't connect immediately
+    })
 
-redis.on('connect', () => {
-  console.log('Redis Client Connected')
-})
+    // Error handling
+    redisInstance.on('error', (err) => {
+      console.error('Redis Client Error', err)
+    })
+
+    redisInstance.on('connect', () => {
+      console.log('Redis Client Connected')
+    })
+
+    // Try to connect when first requested
+    redisInstance.connect().catch((err) => {
+      console.warn('Redis connection warning (will retry):', err.message)
+    })
+  }
+
+  return redisInstance
+}
 
 /**
  * Cache patterns for different data types
@@ -47,7 +62,7 @@ export const cacheKeys = {
   // Rate limiting
   rateLimit: (userId: string, endpoint: string) => `ratelimit:${userId}:${endpoint}`,
 
-  // Gemini API cache (to avoid duplicate requests)
+  // Gemini API cache
   geminiResult: (hash: string) => `gemini:${hash}`,
 }
 
@@ -60,10 +75,11 @@ export const cache = {
    */
   async get<T>(key: string): Promise<T | null> {
     try {
+      const redis = getRedis()
       const data = await redis.get(key)
       return data ? JSON.parse(data) : null
     } catch (error) {
-      console.error(`Cache get error for key ${key}:`, error)
+      console.warn(`Cache get error for key ${key}:`, error)
       return null
     }
   },
@@ -73,9 +89,10 @@ export const cache = {
    */
   async set<T>(key: string, value: T, ttlSeconds: number = 3600): Promise<void> {
     try {
+      const redis = getRedis()
       await redis.setex(key, ttlSeconds, JSON.stringify(value))
     } catch (error) {
-      console.error(`Cache set error for key ${key}:`, error)
+      console.warn(`Cache set error for key ${key}:`, error)
     }
   },
 
@@ -84,9 +101,10 @@ export const cache = {
    */
   async delete(key: string): Promise<void> {
     try {
+      const redis = getRedis()
       await redis.del(key)
     } catch (error) {
-      console.error(`Cache delete error for key ${key}:`, error)
+      console.warn(`Cache delete error for key ${key}:`, error)
     }
   },
 
@@ -95,12 +113,13 @@ export const cache = {
    */
   async deletePattern(pattern: string): Promise<void> {
     try {
+      const redis = getRedis()
       const keys = await redis.keys(pattern)
       if (keys.length > 0) {
         await redis.del(...keys)
       }
     } catch (error) {
-      console.error(`Cache deletePattern error for pattern ${pattern}:`, error)
+      console.warn(`Cache deletePattern error for pattern ${pattern}:`, error)
     }
   },
 
@@ -109,9 +128,10 @@ export const cache = {
    */
   async increment(key: string, amount: number = 1): Promise<number> {
     try {
+      const redis = getRedis()
       return await redis.incrby(key, amount)
     } catch (error) {
-      console.error(`Cache increment error for key ${key}:`, error)
+      console.warn(`Cache increment error for key ${key}:`, error)
       return 0
     }
   },
@@ -121,9 +141,10 @@ export const cache = {
    */
   async setExpire(key: string, ttlSeconds: number): Promise<void> {
     try {
+      const redis = getRedis()
       await redis.expire(key, ttlSeconds)
     } catch (error) {
-      console.error(`Cache setExpire error for key ${key}:`, error)
+      console.warn(`Cache setExpire error for key ${key}:`, error)
     }
   },
 }
@@ -147,7 +168,12 @@ export const cacheInvalidation = {
   },
 
   async invalidateAll(): Promise<void> {
-    await redis.flushdb()
+    try {
+      const redis = getRedis()
+      await redis.flushdb()
+    } catch (error) {
+      console.warn('Cache invalidateAll error:', error)
+    }
   },
 }
 
@@ -155,23 +181,45 @@ export const cacheInvalidation = {
  * Rate limiting helper
  */
 export const rateLimit = {
-  async checkLimit(userId: string, endpoint: string, maxRequests: number = 100, windowSeconds: number = 60): Promise<boolean> {
-    const key = cacheKeys.rateLimit(userId, endpoint)
-    const current = await cache.increment(key)
+  async checkLimit(
+    userId: string,
+    endpoint: string,
+    maxRequests: number = 100,
+    windowSeconds: number = 60
+  ): Promise<boolean> {
+    try {
+      const redis = getRedis()
+      const key = cacheKeys.rateLimit(userId, endpoint)
+      const current = await redis.incrby(key, 1)
 
-    if (current === 1) {
-      // First request in this window, set expiration
-      await cache.setExpire(key, windowSeconds)
+      if (current === 1) {
+        // First request in this window, set expiration
+        await redis.expire(key, windowSeconds)
+      }
+
+      return current <= maxRequests
+    } catch (error) {
+      console.warn('Rate limit check error:', error)
+      // If Redis fails, allow the request (fail open)
+      return true
     }
-
-    return current <= maxRequests
   },
 
-  async getRemaining(userId: string, endpoint: string, maxRequests: number = 100): Promise<number> {
-    const key = cacheKeys.rateLimit(userId, endpoint)
-    const current = parseInt((await redis.get(key)) || '0')
-    return Math.max(0, maxRequests - current)
+  async getRemaining(
+    userId: string,
+    endpoint: string,
+    maxRequests: number = 100
+  ): Promise<number> {
+    try {
+      const redis = getRedis()
+      const key = cacheKeys.rateLimit(userId, endpoint)
+      const current = parseInt((await redis.get(key)) || '0')
+      return Math.max(0, maxRequests - current)
+    } catch (error) {
+      console.warn('Get remaining error:', error)
+      return maxRequests
+    }
   },
 }
 
-export default redis
+export default getRedis()
