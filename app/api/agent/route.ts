@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { cache, cacheKeys, rateLimit } from '@/lib/redis'
+import { supabaseAdmin } from '@/lib/supabase'
+import { cloudflareAnalytics } from '@/lib/cloudflare'
+import crypto from 'crypto'
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD20AFym1g5t0EL3TGu_Npxjy8SR9kCNKI'
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
@@ -121,15 +125,19 @@ function extractJsonFromResponse(text: string): Record<string, any> {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const userId = body.user_id || 'anonymous'
+    const ip = request.headers.get('x-forwarded-for') || 'unknown'
 
-    if (!GEMINI_API_KEY) {
+    // Rate limiting: 100 requests per minute per user
+    const allowed = await rateLimit.checkLimit(userId, '/api/agent', 100, 60)
+    if (!allowed) {
       return NextResponse.json(
         {
           success: false,
-          response: { status: 'error', result: {}, message: 'GEMINI_API_KEY not configured' },
-          error: 'GEMINI_API_KEY not configured on server',
+          response: { status: 'error', result: {}, message: 'Rate limit exceeded' },
+          error: 'Too many requests',
         },
-        { status: 500 }
+        { status: 429 }
       )
     }
 
@@ -144,6 +152,22 @@ export async function POST(request: NextRequest) {
         },
         { status: 400 }
       )
+    }
+
+    // Check cache for duplicate requests
+    const requestHash = crypto
+      .createHash('md5')
+      .update(`${message}${agent_id}`)
+      .digest('hex')
+    const cacheKey = cacheKeys.geminiResult(requestHash)
+    
+    const cachedResult = await cache.get(cacheKey)
+    if (cachedResult) {
+      console.log('Cache hit for agent request')
+      return NextResponse.json({
+        ...cachedResult,
+        cached: true,
+      })
     }
 
     // Get agent config
@@ -220,7 +244,7 @@ export async function POST(request: NextRequest) {
     const parsedJson = extractJsonFromResponse(responseText)
     const normalized = normalizeResponse(parsedJson)
 
-    return NextResponse.json({
+    const result = {
       success: true,
       response: {
         status: normalized.status,
@@ -229,7 +253,34 @@ export async function POST(request: NextRequest) {
       },
       agent_id,
       timestamp: new Date().toISOString(),
-    })
+      cached: false,
+    }
+
+    // Cache the result (5 minutes)
+    await cache.set(cacheKey, result, 300)
+
+    // Log to Supabase
+    try {
+      await supabaseAdmin.from('analysis_results').insert({
+        user_id: userId,
+        agent_id,
+        agent_name: agentConfig.name,
+        input_message: message.substring(0, 500), // Truncate for storage
+        result: normalized.result,
+      })
+
+      // Log security event
+      await cloudflareAnalytics.logSecurityEvent('agent_call', userId, {
+        agent_id,
+        ip,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (logError) {
+      console.error('Error logging to Supabase:', logError)
+      // Don't fail the request if logging fails
+    }
+
+    return NextResponse.json(result)
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Server error'
     console.error('Agent API Error:', error)
