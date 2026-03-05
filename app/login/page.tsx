@@ -146,9 +146,6 @@ export default function LoginPage() {
           <p className="text-slate-400 text-xs">
             © 2025 New Orleans City Park Operations. All rights reserved.
           </p>
-          <p className="text-slate-500 text-xs mt-2">
-            Demo PIN: <span className="font-mono font-semibold text-slate-300">2445</span>
-          </p>
         </div>
       </div>
     </div>

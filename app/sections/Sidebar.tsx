@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { Trees, LayoutDashboard, Package, CreditCard, DollarSign, BarChart3, Trash2, Menu, X, Users } from 'lucide-react';
+import { Trees, LayoutDashboard, Package, DollarSign, BarChart3, Trash2, Menu, X, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SidebarProps {
@@ -36,7 +36,6 @@ export default function Sidebar({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'inventory', label: 'Inventory', icon: Package },
-    { id: 'pos', label: 'POS Sales', icon: CreditCard },
     { id: 'financial', label: 'Financial Reports', icon: DollarSign },
     { id: 'variance', label: 'Variance Analysis', icon: BarChart3 },
     { id: 'waste', label: 'Waste Tracker', icon: Trash2 },

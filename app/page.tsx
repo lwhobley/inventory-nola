@@ -7,12 +7,11 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
-import { LogOut, User, Lock, LayoutDashboard, Package, CreditCard, DollarSign, BarChart3, Trash2 } from 'lucide-react';
+import { LogOut, User, Lock, LayoutDashboard, Package, DollarSign, BarChart3, Trash2 } from 'lucide-react';
 
 import Sidebar from './sections/Sidebar';
 import DashboardOverview from './sections/DashboardOverview';
 import InventoryManagement from './sections/InventoryManagement';
-import POSSync from './sections/POSSync';
 import FinancialDashboard from './sections/FinancialDashboard';
 import VarianceReports from './sections/VarianceReports';
 import WasteTracker from './sections/WasteTracker';
@@ -67,7 +66,6 @@ export default function Page() {
   const [selectedLocation, setSelectedLocation] = useState('All Locations');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeAgentId, setActiveAgentId] = useState<string | null>(null);
-  const [showSample, setShowSample] = useState(false);
   const { currentUser, logout, isOwner } = useAuth();
 
   return (
@@ -88,22 +86,16 @@ export default function Page() {
             <div className="flex items-center gap-3 pl-10 md:pl-0">
               {activeTab === 'dashboard' && <LayoutDashboard className="w-5 h-5 text-teal-600" />}
               {activeTab === 'inventory' && <Package className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'pos' && <CreditCard className="w-5 h-5 text-teal-600" />}
               {activeTab === 'financial' && <DollarSign className="w-5 h-5 text-teal-600" />}
               {activeTab === 'variance' && <BarChart3 className="w-5 h-5 text-teal-600" />}
               {activeTab === 'waste' && <Trash2 className="w-5 h-5 text-teal-600" />}
               <span className="text-sm font-medium text-slate-700 capitalize">
-                {activeTab === 'pos' ? 'POS Sales' : activeTab === 'financial' ? 'Financial Reports' : activeTab === 'variance' ? 'Variance Analysis' : activeTab === 'waste' ? 'Waste Tracker' : activeTab}
+                {activeTab === 'financial' ? 'Financial Reports' : activeTab === 'variance' ? 'Variance Analysis' : activeTab === 'waste' ? 'Waste Tracker' : activeTab}
               </span>
             </div>
             
             {/* User Info and Controls */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Label htmlFor="sample-toggle" className="text-xs text-slate-500">Sample Data</Label>
-                <Switch id="sample-toggle" checked={showSample} onCheckedChange={setShowSample} />
-              </div>
-              
               {/* User Profile */}
               <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
                 <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
@@ -131,7 +123,6 @@ export default function Page() {
 
           {activeTab === 'dashboard' && <DashboardOverview setActiveTab={setActiveTab} selectedLocation={selectedLocation} />}
           {activeTab === 'inventory' && <InventoryManagement selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
-          {activeTab === 'pos' && <POSSync selectedLocation={selectedLocation} />}
           {activeTab === 'financial' && <FinancialDashboard selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'variance' && <VarianceReports selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'waste' && <WasteTracker selectedLocation={selectedLocation} />}
