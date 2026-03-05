@@ -1,34 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
-import { createServerClient, createBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// Browser client (client-side)
-export const supabaseBrowser = createBrowserClient(supabaseUrl, supabaseAnonKey)
-
-// Server client (server-side with service role)
-export function createSupabaseServerClient(
-  cookieStore: { get: (name: string) => { value: string } | undefined }
-) {
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get: (name: string) => cookieStore.get(name)?.value,
-      set: (name: string, value: string, options: any) => {
-        // Server-side cookie setting
-      },
-      remove: (name: string, options: any) => {
-        // Server-side cookie removal
-      },
-    },
-  })
-}
-
-// Admin client (full access)
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Admin client (server-side only - full access with service role key)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+})
 
 // Database types
 export interface StaffUser {
