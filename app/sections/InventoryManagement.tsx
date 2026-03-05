@@ -10,8 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { MdSearch, MdRefresh, MdExpandMore, MdExpandLess, MdWarning, MdCheckCircle } from 'react-icons/md';
-import { FaBoxOpen, FaExclamationTriangle } from 'react-icons/fa';
+import { Search, RefreshCw, ChevronDown, ChevronUp, AlertTriangle, CheckCircle, Package, AlertCircle } from 'lucide-react';
 import { callAIAgent } from '@/lib/aiAgent';
 
 interface InventoryManagementProps {
@@ -124,10 +123,10 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowCount(!showCount)} className="border-slate-200">
-            <FaBoxOpen className="w-4 h-4 mr-1.5" /> {showCount ? 'Close Count' : 'Morning Count'}
+            <Package className="w-4 h-4 mr-1.5" /> {showCount ? 'Close Count' : 'Morning Count'}
           </Button>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">
-            {loading ? <><MdRefresh className="w-4 h-4 mr-1.5 animate-spin" /> Analyzing...</> : <><MdSearch className="w-4 h-4 mr-1.5" /> Analyze Inventory</>}
+            {loading ? <><RefreshCw className="w-4 h-4 mr-1.5 animate-spin" /> Analyzing...</> : <><Search className="w-4 h-4 mr-1.5" /> Analyze Inventory</>}
           </Button>
         </div>
       </div>
@@ -152,7 +151,7 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
 
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <MdSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input placeholder="Search items..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 h-9" />
         </div>
         <Select value={category} onValueChange={setCategory}>
@@ -217,8 +216,8 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
             <Card className="border-slate-200 shadow-sm">
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2"><FaExclamationTriangle className="w-4 h-4" /> Critical Items</CardTitle>
-                  {openSections.critical ? <MdExpandLess className="w-5 h-5 text-slate-400" /> : <MdExpandMore className="w-5 h-5 text-slate-400" />}
+                  <CardTitle className="text-sm font-semibold text-red-700 flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Critical Items</CardTitle>
+                  {openSections.critical ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -242,8 +241,8 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
             <Card className="border-slate-200 shadow-sm">
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-teal-700 flex items-center gap-2"><MdRefresh className="w-4 h-4" /> Reorder Suggestions</CardTitle>
-                  {openSections.reorder ? <MdExpandLess className="w-5 h-5 text-slate-400" /> : <MdExpandMore className="w-5 h-5 text-slate-400" />}
+                  <CardTitle className="text-sm font-semibold text-teal-700 flex items-center gap-2"><RefreshCw className="w-4 h-4" /> Reorder Suggestions</CardTitle>
+                  {openSections.reorder ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -267,8 +266,8 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
             <Card className="border-slate-200 shadow-sm">
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-amber-700 flex items-center gap-2"><MdWarning className="w-4 h-4" /> Consumption Anomalies</CardTitle>
-                  {openSections.anomalies ? <MdExpandLess className="w-5 h-5 text-slate-400" /> : <MdExpandMore className="w-5 h-5 text-slate-400" />}
+                  <CardTitle className="text-sm font-semibold text-amber-700 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Consumption Anomalies</CardTitle>
+                  {openSections.anomalies ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -291,8 +290,8 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
             <Card className="border-slate-200 shadow-sm">
               <CollapsibleTrigger className="w-full">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                  <CardTitle className="text-sm font-semibold text-blue-700 flex items-center gap-2"><MdCheckCircle className="w-4 h-4" /> Excess Stock Alerts</CardTitle>
-                  {openSections.excess ? <MdExpandLess className="w-5 h-5 text-slate-400" /> : <MdExpandMore className="w-5 h-5 text-slate-400" />}
+                  <CardTitle className="text-sm font-semibold text-blue-700 flex items-center gap-2"><CheckCircle className="w-4 h-4" /> Excess Stock Alerts</CardTitle>
+                  {openSections.excess ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                 </CardHeader>
               </CollapsibleTrigger>
               <CollapsibleContent>

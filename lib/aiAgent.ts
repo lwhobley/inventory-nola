@@ -78,8 +78,8 @@ export interface UploadResponse {
 const POLL_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
 
 /**
- * Call the AI Agent via server-side API route.
- * Submits an async task then polls from the client until completion.
+ * Call the AI Agent via server-side API route (Gemini-based).
+ * Now synchronous instead of polling.
  */
 export async function callAIAgent(
   message: string,
@@ -87,8 +87,8 @@ export async function callAIAgent(
   options?: { user_id?: string; session_id?: string; assets?: string[] }
 ): Promise<AIAgentResponse> {
   try {
-    // 1. Submit task — returns { task_id, agent_id, user_id, session_id }
-    const submitRes = await fetchWrapper('/api/agent', {
+    // Call Gemini API synchronously
+    const res = await fetchWrapper('/api/agent', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -100,7 +100,7 @@ export async function callAIAgent(
       }),
     })
 
-    if (!submitRes) {
+    if (!res) {
       return {
         success: false,
         response: { status: 'error', result: {}, message: 'No response from server' },
@@ -108,62 +108,17 @@ export async function callAIAgent(
       }
     }
 
-    const submitData = await submitRes.json()
+    const data = await res.json()
 
-    // If submit itself failed or no task_id returned, return as-is
-    if (!submitData.task_id) {
-      return submitData.success === false
-        ? submitData
-        : {
-            success: false,
-            response: { status: 'error', result: {}, message: 'No task_id in response' },
-            error: 'No task_id in response',
-          }
+    if (!data.success) {
+      return data
     }
 
-    const { task_id, user_id, session_id } = submitData
-
-    // 2. Poll POST /api/agent with { task_id } — adaptive backoff from CSR
-    const startTime = Date.now()
-    let attempt = 0
-
-    while (Date.now() - startTime < POLL_TIMEOUT_MS) {
-      const delay = Math.min(300 * Math.pow(1.5, attempt), 3000)
-      await new Promise(r => setTimeout(r, delay))
-      attempt++
-
-      const pollRes = await fetchWrapper('/api/agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ task_id }),
-      })
-      if (!pollRes) {
-        continue // fetchWrapper returned undefined (redirect/error) — retry next poll
-      }
-      const pollData = await pollRes.json()
-
-      if (pollData.status === 'processing') {
-        continue
-      }
-
-      // Completed or failed — attach agent_id/user_id/session_id and return
-      return {
-        ...pollData,
-        agent_id,
-        user_id,
-        session_id,
-      }
-    }
-
-    // Timed out
     return {
-      success: false,
-      response: {
-        status: 'error',
-        result: {},
-        message: 'Agent task timed out after 5 minutes',
-      },
-      error: 'Agent task timed out after 5 minutes',
+      ...data,
+      agent_id,
+      user_id: options?.user_id,
+      session_id: options?.session_id,
     }
   } catch (error) {
     return {

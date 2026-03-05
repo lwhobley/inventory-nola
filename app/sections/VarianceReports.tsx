@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { MdRefresh, MdCompareArrows, MdAutoAwesome } from 'react-icons/md';
-import { FaChartPie } from 'react-icons/fa';
+import { RefreshCw, GitCompare, Sparkles, PieChart as PieChartIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { callAIAgent } from '@/lib/aiAgent';
 
@@ -142,7 +141,7 @@ export default function VarianceReports({ selectedLocation, activeAgentId, setAc
             <SelectContent>{DATE_RANGES.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
           </Select>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">
-            {loading ? <><MdRefresh className="w-4 h-4 mr-1.5 animate-spin" /> Analyzing...</> : <><MdCompareArrows className="w-4 h-4 mr-1.5" /> Run Analysis</>}
+            {loading ? <><RefreshCw className="w-4 h-4 mr-1.5 animate-spin" /> Analyzing...</> : <><GitCompare className="w-4 h-4 mr-1.5" /> Run Analysis</>}
           </Button>
         </div>
       </div>
@@ -217,7 +216,7 @@ export default function VarianceReports({ selectedLocation, activeAgentId, setAc
         <div className="space-y-6">
           <Separator />
           <div className="flex items-center gap-2">
-            <MdAutoAwesome className="w-5 h-5 text-teal-600" />
+            <Sparkles className="w-5 h-5 text-teal-600" />
             <h3 className="text-lg font-bold text-slate-900">AI Variance Analysis</h3>
           </div>
 
@@ -240,7 +239,7 @@ export default function VarianceReports({ selectedLocation, activeAgentId, setAc
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {Array.isArray(analysis.variance_by_category) && analysis.variance_by_category.length > 0 && (
               <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2"><FaChartPie className="w-4 h-4 text-teal-600" /> Variance by Category</CardTitle></CardHeader>
+                <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-2"><PieChartIcon className="w-4 h-4 text-teal-600" /> Variance by Category</CardTitle></CardHeader>
                 <CardContent>
                   {mounted && (
                     <div className="h-48">

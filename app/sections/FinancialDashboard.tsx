@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { MdRefresh, MdTrendingUp, MdTrendingDown, MdAutoAwesome } from 'react-icons/md';
-import { FaChartLine } from 'react-icons/fa';
+import { RefreshCw, TrendingUp, TrendingDown, Sparkles, TrendingUpIcon } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { callAIAgent } from '@/lib/aiAgent';
 
@@ -144,7 +143,7 @@ export default function FinancialDashboard({ selectedLocation, activeAgentId, se
             <SelectContent>{PERIODS.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
           </Select>
           <Button onClick={handleGenerate} disabled={loading} className="bg-teal-600 hover:bg-teal-700 text-white">
-            {loading ? <><MdRefresh className="w-4 h-4 mr-1.5 animate-spin" /> Generating...</> : <><FaChartLine className="w-4 h-4 mr-1.5" /> Generate Report</>}
+            {loading ? <><RefreshCw className="w-4 h-4 mr-1.5 animate-spin" /> Generating...</> : <><TrendingUpIcon className="w-4 h-4 mr-1.5" /> Generate Report</>}
           </Button>
         </div>
       </div>
@@ -237,7 +236,7 @@ export default function FinancialDashboard({ selectedLocation, activeAgentId, se
         <div className="space-y-6">
           <Separator />
           <div className="flex items-center gap-2">
-            <MdAutoAwesome className="w-5 h-5 text-teal-600" />
+            <Sparkles className="w-5 h-5 text-teal-600" />
             <h3 className="text-lg font-bold text-slate-900">AI Financial Insights</h3>
           </div>
 
@@ -257,7 +256,7 @@ export default function FinancialDashboard({ selectedLocation, activeAgentId, se
                     <p className="text-xl font-bold text-slate-900 mt-1">{m?.value ?? ''}</p>
                     <div className="flex items-center justify-between mt-1">
                       <span className="text-xs text-slate-500 flex items-center gap-1">
-                        {(m?.trend ?? '').includes('+') || (m?.trend ?? '').toLowerCase().includes('up') ? <MdTrendingUp className="w-3 h-3 text-green-500" /> : <MdTrendingDown className="w-3 h-3 text-red-500" />}
+                        {(m?.trend ?? '').includes('+') || (m?.trend ?? '').toLowerCase().includes('up') ? <TrendingUp className="w-3 h-3 text-green-500" /> : <TrendingDown className="w-3 h-3 text-red-500" />}
                         {m?.trend ?? ''}
                       </span>
                       <span className={`text-xs font-medium ${statusMetricColor(m?.status ?? '')}`}>{m?.status ?? ''}</span>
@@ -292,7 +291,7 @@ export default function FinancialDashboard({ selectedLocation, activeAgentId, se
               <CardContent className="space-y-2">
                 {analysis.trend_analysis.map((t, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100">
-                    {(t?.direction ?? '').toLowerCase().includes('up') ? <MdTrendingUp className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> : <MdTrendingDown className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />}
+                    {(t?.direction ?? '').toLowerCase().includes('up') ? <TrendingUp className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> : <TrendingDown className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />}
                     <div><p className="text-sm font-medium text-slate-800">{t?.metric ?? ''} &mdash; {t?.direction ?? ''}</p><p className="text-xs text-slate-600">{t?.details ?? ''}</p></div>
                   </div>
                 ))}

@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MdSync, MdCheckCircle, MdError, MdSchedule } from 'react-icons/md';
+import { Sync, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 interface POSSyncProps {
   selectedLocation: string;
@@ -44,9 +44,9 @@ const DEPLETION_LOG = [
 ];
 
 function StatusIcon({ status }: { status: string }) {
-  if (status === 'synced') return <MdCheckCircle className="w-4 h-4 text-green-500" />;
-  if (status === 'pending') return <MdSchedule className="w-4 h-4 text-amber-500" />;
-  return <MdError className="w-4 h-4 text-red-500" />;
+  if (status === 'synced') return <CheckCircle className="w-4 h-4 text-green-500" />;
+  if (status === 'pending') return <Clock className="w-4 h-4 text-amber-500" />;
+  return <AlertCircle className="w-4 h-4 text-red-500" />;
 }
 
 export default function POSSync({ selectedLocation }: POSSyncProps) {
@@ -69,7 +69,7 @@ export default function POSSync({ selectedLocation }: POSSyncProps) {
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <MdCheckCircle className="w-5 h-5 text-green-600" />
+              <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{syncedCount}</p>
@@ -80,7 +80,7 @@ export default function POSSync({ selectedLocation }: POSSyncProps) {
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-              <MdSchedule className="w-5 h-5 text-amber-600" />
+              <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{pendingCount}</p>
@@ -91,7 +91,7 @@ export default function POSSync({ selectedLocation }: POSSyncProps) {
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-              <MdError className="w-5 h-5 text-red-600" />
+              <AlertCircle className="w-5 h-5 text-red-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900">{errorCount}</p>
@@ -107,7 +107,7 @@ export default function POSSync({ selectedLocation }: POSSyncProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold text-slate-900">Recent Transactions</CardTitle>
               <div className="flex items-center gap-1.5">
-                <MdSync className="w-4 h-4 text-teal-600 animate-spin" />
+                <Sync className="w-4 h-4 text-teal-600 animate-spin" />
                 <span className="text-xs text-teal-600 font-medium">Live</span>
               </div>
             </div>

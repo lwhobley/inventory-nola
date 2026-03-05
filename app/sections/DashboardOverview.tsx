@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MdTrendingUp, MdTrendingDown, MdWarning, MdPlayArrow, MdAssignment, MdDelete } from 'react-icons/md';
+import { TrendingUp, TrendingDown, AlertTriangle, Play, FileText, Trash2 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
 
 interface DashboardOverviewProps {
@@ -63,7 +63,7 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{kpi.label}</span>
                 <span className={`flex items-center text-xs font-semibold ${kpi.label === 'Waste %' ? (kpi.up ? 'text-red-500' : 'text-green-600') : (kpi.up ? 'text-green-600' : 'text-red-500')}`}>
-                  {kpi.up ? <MdTrendingUp className="w-3.5 h-3.5 mr-0.5" /> : <MdTrendingDown className="w-3.5 h-3.5 mr-0.5" />}
+                  {kpi.up ? <TrendingUp className="w-3.5 h-3.5 mr-0.5" /> : <TrendingDown className="w-3.5 h-3.5 mr-0.5" />}
                   {kpi.trend}
                 </span>
               </div>
@@ -90,7 +90,7 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
           <CardContent className="space-y-2">
             {ALERTS.map((alert) => (
               <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg ${alert.type === 'critical' ? 'bg-red-50 border border-red-100' : alert.type === 'warning' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'}`}>
-                <MdWarning className={`w-4 h-4 mt-0.5 shrink-0 ${alert.type === 'critical' ? 'text-red-500' : alert.type === 'warning' ? 'text-amber-500' : 'text-slate-400'}`} />
+                <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${alert.type === 'critical' ? 'text-red-500' : alert.type === 'warning' ? 'text-amber-500' : 'text-slate-400'}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-slate-700">{alert.message}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{alert.time}</p>
@@ -106,21 +106,21 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
           </CardHeader>
           <CardContent className="space-y-3">
             <Button onClick={() => setActiveTab('inventory')} variant="outline" className="w-full justify-start gap-3 h-12 text-left border-slate-200 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700">
-              <MdPlayArrow className="w-5 h-5 text-teal-600" />
+              <Play className="w-5 h-5 text-teal-600" />
               <div>
                 <p className="text-sm font-medium">Start Morning Count</p>
                 <p className="text-xs text-slate-400">Physical inventory check</p>
               </div>
             </Button>
             <Button onClick={() => setActiveTab('waste')} variant="outline" className="w-full justify-start gap-3 h-12 text-left border-slate-200 hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700">
-              <MdDelete className="w-5 h-5 text-amber-600" />
+              <Trash2 className="w-5 h-5 text-amber-600" />
               <div>
                 <p className="text-sm font-medium">Log Waste</p>
                 <p className="text-xs text-slate-400">Record spoilage or spillage</p>
               </div>
             </Button>
             <Button onClick={() => setActiveTab('financial')} variant="outline" className="w-full justify-start gap-3 h-12 text-left border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700">
-              <MdAssignment className="w-5 h-5 text-emerald-600" />
+              <FileText className="w-5 h-5 text-emerald-600" />
               <div>
                 <p className="text-sm font-medium">Generate Report</p>
                 <p className="text-xs text-slate-400">Financial insights & COGS</p>

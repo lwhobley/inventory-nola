@@ -7,8 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
-import { LogOut, User, Lock } from 'lucide-react';
-import { MdDashboard, MdInventory, MdPointOfSale, MdAttachMoney, MdCompareArrows, MdDelete } from 'react-icons/md';
+import { LogOut, User, Lock, LayoutDashboard, Package, CreditCard, DollarSign, BarChart3, Trash2 } from 'lucide-react';
 
 import Sidebar from './sections/Sidebar';
 import DashboardOverview from './sections/DashboardOverview';
@@ -87,12 +86,12 @@ export default function Page() {
           {/* Top Header with User Info */}
           <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3 pl-10 md:pl-0">
-              {activeTab === 'dashboard' && <MdDashboard className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'inventory' && <MdInventory className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'pos' && <MdPointOfSale className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'financial' && <MdAttachMoney className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'variance' && <MdCompareArrows className="w-5 h-5 text-teal-600" />}
-              {activeTab === 'waste' && <MdDelete className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'dashboard' && <LayoutDashboard className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'inventory' && <Package className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'pos' && <CreditCard className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'financial' && <DollarSign className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'variance' && <BarChart3 className="w-5 h-5 text-teal-600" />}
+              {activeTab === 'waste' && <Trash2 className="w-5 h-5 text-teal-600" />}
               <span className="text-sm font-medium text-slate-700 capitalize">
                 {activeTab === 'pos' ? 'POS Sales' : activeTab === 'financial' ? 'Financial Reports' : activeTab === 'variance' ? 'Variance Analysis' : activeTab === 'waste' ? 'Waste Tracker' : activeTab}
               </span>

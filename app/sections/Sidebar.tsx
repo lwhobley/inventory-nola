@@ -2,18 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { FaTree } from 'react-icons/fa';
-import {
-  MdDashboard,
-  MdInventory,
-  MdPointOfSale,
-  MdAttachMoney,
-  MdCompareArrows,
-  MdDelete,
-  MdMenu,
-  MdClose,
-  MdPeople,
-} from 'react-icons/md';
+import { Trees, LayoutDashboard, Package, CreditCard, DollarSign, BarChart3, Trash2, Menu, X, Users } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SidebarProps {
@@ -54,13 +43,13 @@ export default function Sidebar({
   const { isOwner } = useAuth();
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: MdDashboard },
-    { id: 'inventory', label: 'Inventory', icon: MdInventory },
-    { id: 'pos', label: 'POS Sales', icon: MdPointOfSale },
-    { id: 'financial', label: 'Financial Reports', icon: MdAttachMoney },
-    { id: 'variance', label: 'Variance Analysis', icon: MdCompareArrows },
-    { id: 'waste', label: 'Waste Tracker', icon: MdDelete },
-    ...(isOwner ? [{ id: 'staff', label: 'Staff Management', icon: MdPeople }] : []),
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'inventory', label: 'Inventory', icon: Package },
+    { id: 'pos', label: 'POS Sales', icon: CreditCard },
+    { id: 'financial', label: 'Financial Reports', icon: DollarSign },
+    { id: 'variance', label: 'Variance Analysis', icon: BarChart3 },
+    { id: 'waste', label: 'Waste Tracker', icon: Trash2 },
+    ...(isOwner ? [{ id: 'staff', label: 'Staff Management', icon: Users }] : []),
   ];
   return (
     <>
@@ -68,7 +57,7 @@ export default function Sidebar({
         onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-slate-800 text-white shadow-lg"
       >
-        {mobileOpen ? <MdClose className="w-6 h-6" /> : <MdMenu className="w-6 h-6" />}
+        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
       </button>
 
       {mobileOpen && (
@@ -85,7 +74,7 @@ export default function Sidebar({
       >
         <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-700">
           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-teal-600">
-            <FaTree className="w-5 h-5 text-white" />
+            <Trees className="w-5 h-5 text-white" />
           </div>
           <div>
             <h1 className="text-sm font-bold leading-tight">NOLA City Park</h1>

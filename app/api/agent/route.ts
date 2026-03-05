@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import parseLLMJson from '@/lib/jsonParser'
 
-const LYZR_TASK_URL = 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/task'
-const LYZR_API_KEY = process.env.LYZR_API_KEY || ''
-
-// Types
-interface ArtifactFile {
-  file_url: string
-  name: string
-  format_type: string
-}
-
-interface ModuleOutputs {
-  artifact_files?: ArtifactFile[]
-  [key: string]: any
-}
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyD20AFym1g5t0EL3TGu_Npxjy8SR9kCNKI'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
 
 interface NormalizedAgentResponse {
   status: 'success' | 'error'
@@ -27,12 +14,46 @@ interface NormalizedAgentResponse {
   }
 }
 
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
+// Agent configurations with specific prompts
+const AGENT_CONFIGS: Record<string, { name: string; systemPrompt: string }> = {
+  '69a5b1a3f2d0d9c8063d1a47': {
+    name: 'Financial Insights Agent',
+    systemPrompt: `You are a financial analysis expert for restaurant/hospitality operations. 
+Analyze the provided financial data and return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
+{
+  "summary": "string - brief overview",
+  "overall_cogs_percentage": "string",
+  "cost_of_goods_sold": [{"category": "string", "amount": "string", "percentage": "string"}],
+  "revenue_breakdown": [{"location": "string", "amount": "string", "percentage": "string"}],
+  "margin_trends": [{"period": "string", "cogs_percent": "string", "margin_percent": "string"}],
+  "cost_saving_opportunities": [{"opportunity": "string", "potential_savings": "string", "effort": "string"}]
+}`,
+  },
+  '69a5b1a33fe08f1e2b19b91e': {
+    name: 'Inventory Intelligence Agent',
+    systemPrompt: `You are an inventory management expert for hospitality/food service operations.
+Analyze the provided inventory data and return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
+{
+  "summary": "string - brief overview",
+  "overall_health_score": "string",
+  "critical_items": [{"item_name": "string", "current_stock": "string", "daily_usage": "string", "days_remaining": "string", "risk_level": "string"}],
+  "reorder_suggestions": [{"item_name": "string", "current_stock": "string", "daily_usage": "string", "days_remaining": "string", "suggested_order_qty": "string", "urgency": "string"}],
+  "consumption_anomalies": [{"item_name": "string", "expected_usage": "string", "actual_usage": "string", "deviation_percentage": "string", "possible_cause": "string"}],
+  "excess_stock_alerts": [{"item_name": "string", "current_stock": "string", "days_until_expiry": "string", "recommended_action": "string"}]
+}`,
+  },
+  '69a5b1a38413529629dda599': {
+    name: 'Variance Analyst Agent',
+    systemPrompt: `You are a variance analysis expert for hospitality operations.
+Analyze the provided variance data and return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
+{
+  "summary": "string - brief overview",
+  "variance_metrics": [{"metric": "string", "theoretical": "string", "actual": "string", "variance": "string", "percentage": "string"}],
+  "significant_variances": [{"category": "string", "description": "string", "amount": "string", "impact": "string"}],
+  "root_cause_analysis": [{"issue": "string", "potential_causes": ["string"], "evidence": "string"}],
+  "recommendations": [{"issue": "string", "action": "string", "expected_impact": "string", "priority": "string"}]
+}`,
+  },
 }
 
 function normalizeResponse(parsed: any): NormalizedAgentResponse {
@@ -69,43 +90,6 @@ function normalizeResponse(parsed: any): NormalizedAgentResponse {
     }
   }
 
-  if ('status' in parsed) {
-    const { status, message, metadata, ...rest } = parsed
-    return {
-      status: status === 'error' ? 'error' : 'success',
-      result: Object.keys(rest).length > 0 ? rest : {},
-      message,
-      metadata,
-    }
-  }
-
-  if ('result' in parsed) {
-    const r = parsed.result
-    const msg = parsed.message
-      ?? (typeof r === 'string' ? r : null)
-      ?? (r && typeof r === 'object'
-          ? (r.text ?? r.message ?? r.response ?? r.answer ?? r.summary ?? r.content)
-          : null)
-    return {
-      status: 'success',
-      result: typeof r === 'string' ? { text: r } : (r || {}),
-      message: typeof msg === 'string' ? msg : undefined,
-      metadata: parsed.metadata,
-    }
-  }
-
-  if ('message' in parsed && typeof parsed.message === 'string') {
-    return {
-      status: 'success',
-      result: { text: parsed.message },
-      message: parsed.message,
-    }
-  }
-
-  if ('response' in parsed) {
-    return normalizeResponse(parsed.response)
-  }
-
   return {
     status: 'success',
     result: parsed,
@@ -114,37 +98,141 @@ function normalizeResponse(parsed: any): NormalizedAgentResponse {
   }
 }
 
-/**
- * POST /api/agent
- *
- * Two modes, both POST:
- *   1. Submit:  body has { message, agent_id, ... }  → submits task, returns { task_id }
- *   2. Poll:    body has { task_id }                  → polls Lyzr, returns status/result
- */
+function extractJsonFromResponse(text: string): Record<string, any> {
+  // Try to extract JSON from the response (handles markdown code blocks)
+  const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/)
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[1])
+    } catch {
+      // If markdown extraction fails, try direct parse
+    }
+  }
+
+  // Try direct JSON parse
+  try {
+    return JSON.parse(text)
+  } catch {
+    // If all parsing fails, wrap as plain text
+    return { text, message: text }
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    if (!LYZR_API_KEY) {
+    if (!GEMINI_API_KEY) {
       return NextResponse.json(
         {
           success: false,
-          response: { status: 'error', result: {}, message: 'LYZR_API_KEY not configured' },
-          error: 'LYZR_API_KEY not configured on server',
+          response: { status: 'error', result: {}, message: 'GEMINI_API_KEY not configured' },
+          error: 'GEMINI_API_KEY not configured on server',
         },
         { status: 500 }
       )
     }
 
-    // ── Poll mode: body has task_id ──
-    if (body.task_id) {
-      return pollTask(body.task_id)
+    const { message, agent_id } = body
+
+    if (!message || !agent_id) {
+      return NextResponse.json(
+        {
+          success: false,
+          response: { status: 'error', result: {}, message: 'message and agent_id are required' },
+          error: 'message and agent_id are required',
+        },
+        { status: 400 }
+      )
     }
 
-    // ── Submit mode: body has message + agent_id ──
-    return submitTask(body)
+    // Get agent config
+    const agentConfig = AGENT_CONFIGS[agent_id]
+    if (!agentConfig) {
+      return NextResponse.json(
+        {
+          success: false,
+          response: { status: 'error', result: {}, message: `Unknown agent_id: ${agent_id}` },
+          error: `Unknown agent_id: ${agent_id}`,
+        },
+        { status: 400 }
+      )
+    }
+
+    // Call Gemini API
+    const geminiResponse = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: agentConfig.systemPrompt + '\n\n' + message,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+      }),
+    })
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('Gemini API Error:', errorText)
+      return NextResponse.json(
+        {
+          success: false,
+          response: { status: 'error', result: {}, message: `Gemini API Error: ${geminiResponse.status}` },
+          error: errorText,
+        },
+        { status: geminiResponse.status }
+      )
+    }
+
+    const geminiData = await geminiResponse.json()
+
+    // Extract text from Gemini response
+    let responseText = ''
+    if (geminiData.candidates && geminiData.candidates[0]?.content?.parts?.[0]?.text) {
+      responseText = geminiData.candidates[0].content.parts[0].text
+    }
+
+    if (!responseText) {
+      return NextResponse.json(
+        {
+          success: false,
+          response: { status: 'error', result: {}, message: 'Empty response from Gemini' },
+          error: 'Empty response from Gemini',
+        },
+        { status: 500 }
+      )
+    }
+
+    // Parse JSON from response
+    const parsedJson = extractJsonFromResponse(responseText)
+    const normalized = normalizeResponse(parsedJson)
+
+    return NextResponse.json({
+      success: true,
+      response: {
+        status: normalized.status,
+        result: normalized.result,
+        message: normalized.message || responseText,
+      },
+      agent_id,
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Server error'
+    console.error('Agent API Error:', error)
     return NextResponse.json(
       {
         success: false,
@@ -154,158 +242,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     )
   }
-}
-
-/**
- * Submit a new async task to Lyzr
- */
-async function submitTask(body: any) {
-  const { message, agent_id, user_id, session_id, assets } = body
-
-  if (!message || !agent_id) {
-    return NextResponse.json(
-      {
-        success: false,
-        response: { status: 'error', result: {}, message: 'message and agent_id are required' },
-        error: 'message and agent_id are required',
-      },
-      { status: 400 }
-    )
-  }
-
-  const finalUserId = user_id || process.env.LYZR_USER_ID || process.env.NEXT_LYZR_USER_ID || `user-${generateUUID()}`
-  const finalSessionId = session_id || `${agent_id}-${generateUUID().substring(0, 12)}`
-
-  const payload: Record<string, any> = {
-    message,
-    agent_id,
-    user_id: finalUserId,
-    session_id: finalSessionId,
-  }
-
-  if (assets && assets.length > 0) {
-    payload.assets = assets
-  }
-
-  const submitRes = await fetch(LYZR_TASK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': LYZR_API_KEY,
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!submitRes.ok) {
-    const submitText = await submitRes.text()
-    let errorMsg = `Task submit failed with status ${submitRes.status}`
-    try {
-      const errorData = JSON.parse(submitText)
-      errorMsg = errorData?.detail || errorData?.error || errorData?.message || errorMsg
-    } catch {
-      try {
-        const errorData = parseLLMJson(submitText)
-        errorMsg = errorData?.error || errorData?.message || errorMsg
-      } catch {}
-    }
-    return NextResponse.json(
-      {
-        success: false,
-        response: { status: 'error', result: {}, message: errorMsg },
-        error: errorMsg,
-        raw_response: submitText,
-      },
-      { status: submitRes.status }
-    )
-  }
-
-  const { task_id } = await submitRes.json()
-
-  return NextResponse.json({
-    task_id,
-    agent_id,
-    user_id: finalUserId,
-    session_id: finalSessionId,
-  })
-}
-
-/**
- * Poll a task by ID — single request proxy with API key
- */
-async function pollTask(task_id: string) {
-  const pollRes = await fetch(`${LYZR_TASK_URL}/${task_id}`, {
-    headers: {
-      'accept': 'application/json',
-      'x-api-key': LYZR_API_KEY,
-    },
-  })
-
-  if (!pollRes.ok) {
-    const pollText = await pollRes.text()
-    const msg = pollRes.status === 404
-      ? 'Task expired or not found'
-      : `Poll failed with status ${pollRes.status}`
-    return NextResponse.json(
-      {
-        success: false,
-        status: 'failed',
-        error: msg,
-        raw_response: pollText,
-      },
-      { status: pollRes.status }
-    )
-  }
-
-  const task = await pollRes.json()
-
-  // Still processing
-  if (task.status === 'processing') {
-    return NextResponse.json({ status: 'processing' })
-  }
-
-  // Task failed
-  if (task.status === 'failed') {
-    return NextResponse.json(
-      {
-        success: false,
-        status: 'failed',
-        response: { status: 'error', result: {}, message: task.error || 'Agent task failed' },
-        error: task.error || 'Agent task failed',
-      },
-      { status: 500 }
-    )
-  }
-
-  // Task completed — envelope extraction + parseLLMJson + normalizeResponse
-  const rawText = JSON.stringify(task.response)
-  let moduleOutputs: ModuleOutputs | undefined
-  let agentResponseRaw: any = rawText
-
-  try {
-    const envelope = JSON.parse(rawText)
-    if (envelope && typeof envelope === 'object' && 'response' in envelope) {
-      moduleOutputs = envelope.module_outputs
-      agentResponseRaw = envelope.response
-    }
-  } catch {
-    // Not standard JSON envelope — parseLLMJson will handle it
-  }
-
-  const parsed = parseLLMJson(agentResponseRaw)
-
-  const toNormalize =
-    parsed && typeof parsed === 'object' && parsed.success === false && parsed.data === null
-      ? agentResponseRaw
-      : parsed
-
-  const normalized = normalizeResponse(toNormalize)
-
-  return NextResponse.json({
-    success: true,
-    status: 'completed',
-    response: normalized,
-    module_outputs: moduleOutputs,
-    timestamp: new Date().toISOString(),
-    raw_response: rawText,
-  })
 }

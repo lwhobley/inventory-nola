@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { MdDelete, MdAdd, MdTrendingDown } from 'react-icons/md';
+import { Trash2, Plus, TrendingDown } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 
 interface WasteTrackerProps {
@@ -95,7 +95,7 @@ export default function WasteTracker({ selectedLocation }: WasteTrackerProps) {
           <p className="text-sm text-slate-500 mt-0.5">Log and track waste, spoilage, and spillage</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} className="bg-teal-600 hover:bg-teal-700 text-white">
-          <MdAdd className="w-4 h-4 mr-1.5" /> Log Waste
+          <Plus className="w-4 h-4 mr-1.5" /> Log Waste
         </Button>
       </div>
 
@@ -163,7 +163,7 @@ export default function WasteTracker({ selectedLocation }: WasteTrackerProps) {
             <p className="text-xs text-slate-500 uppercase tracking-wide">Week Total</p>
             <p className="text-2xl font-bold text-slate-900 mt-1">${weekTotal.toFixed(2)}</p>
             <div className="flex items-center gap-1 mt-0.5">
-              <MdTrendingDown className="w-3.5 h-3.5 text-green-500" />
+              <TrendingDown className="w-3.5 h-3.5 text-green-500" />
               <span className="text-xs text-green-600">-12% vs last week</span>
             </div>
           </CardContent>
