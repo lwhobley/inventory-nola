@@ -15,6 +15,8 @@ import InventoryManagement from './sections/InventoryManagement';
 import FinancialDashboard from './sections/FinancialDashboard';
 import VarianceReports from './sections/VarianceReports';
 import WasteTracker from './sections/WasteTracker';
+import InventoryAlerts from './sections/InventoryAlerts';
+import StockTransfer from './sections/StockTransfer';
 import StaffManagement from './staff/page';
 
 const AGENTS = [
@@ -123,6 +125,8 @@ export default function Page() {
 
           {activeTab === 'dashboard' && <DashboardOverview setActiveTab={setActiveTab} selectedLocation={selectedLocation} />}
           {activeTab === 'inventory' && <InventoryManagement selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
+          {activeTab === 'alerts' && <InventoryAlerts />}
+          {activeTab === 'transfers' && <StockTransfer />}
           {activeTab === 'financial' && <FinancialDashboard selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'variance' && <VarianceReports selectedLocation={selectedLocation} activeAgentId={activeAgentId} setActiveAgentId={setActiveAgentId} />}
           {activeTab === 'waste' && <WasteTracker selectedLocation={selectedLocation} />}
