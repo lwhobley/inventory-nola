@@ -116,7 +116,10 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
         .eq('location', selectedLocation);
       
       if (err) {
-        setError('Failed to load inventory');
+        // If table doesn't exist or permission error, start with empty list
+        console.warn('Inventory load warning:', err.message);
+        setInventory([]);
+        setError('');
         return;
       }
       
@@ -124,7 +127,9 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
       setError('');
     } catch (err) {
       console.error('Inventory load error:', err);
-      setError('Failed to load inventory from database');
+      // Don't show error if table doesn't exist yet - just start with empty
+      setInventory([]);
+      setError('');
     }
   };
 
@@ -345,38 +350,50 @@ export default function InventoryManagement({ selectedLocation, activeAgentId, s
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((item) => {
-                  const percentage = Math.round((item.current_stock / item.par_level) * 100);
-                  const status = calculateStatus(item.current_stock, item.par_level);
-                  return (
-                    <TableRow key={item.id || item.name}>
-                      <TableCell className="text-xs font-medium">{item.name}</TableCell>
-                      <TableCell className="text-xs text-slate-500">{item.category}</TableCell>
-                      <TableCell className="text-xs text-right">{item.current_stock} {item.unit}</TableCell>
-                      <TableCell className="text-xs text-right">{item.par_level}</TableCell>
-                      <TableCell className="text-xs text-right">
-                        <Progress value={Math.min(percentage, 200)} className="w-12 h-2" />
-                        <span className={percentage > 150 ? 'text-blue-600' : percentage > 70 ? 'text-green-600' : percentage > 30 ? 'text-amber-600' : 'text-red-600'}>{percentage}%</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={statusColor(status)}>
-                          {status}
-                        </Badge>
-                      </TableCell>
-                      {showCount && (
-                        <TableCell>
-                          <Input
-                            type="number"
-                            value={countValues[item.name] || ''}
-                            onChange={(e) => setCountValues({ ...countValues, [item.name]: e.target.value })}
-                            placeholder="New count"
-                            className="w-20 h-8 text-xs"
-                          />
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={showCount ? 7 : 6} className="text-center py-8">
+                      <div className="space-y-2">
+                        <Package className="w-8 h-8 text-slate-300 mx-auto" />
+                        <p className="text-sm text-slate-500">No inventory items found</p>
+                        <p className="text-xs text-slate-400">Click "Add Item" to get started</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((item) => {
+                    const percentage = Math.round((item.current_stock / item.par_level) * 100);
+                    const status = calculateStatus(item.current_stock, item.par_level);
+                    return (
+                      <TableRow key={item.id || item.name}>
+                        <TableCell className="text-xs font-medium">{item.name}</TableCell>
+                        <TableCell className="text-xs text-slate-500">{item.category}</TableCell>
+                        <TableCell className="text-xs text-right">{item.current_stock} {item.unit}</TableCell>
+                        <TableCell className="text-xs text-right">{item.par_level}</TableCell>
+                        <TableCell className="text-xs text-right">
+                          <Progress value={Math.min(percentage, 200)} className="w-12 h-2" />
+                          <span className={percentage > 150 ? 'text-blue-600' : percentage > 70 ? 'text-green-600' : percentage > 30 ? 'text-amber-600' : 'text-red-600'}>{percentage}%</span>
                         </TableCell>
-                      )}
-                    </TableRow>
-                  );
-                })}
+                        <TableCell>
+                          <Badge variant="outline" className={statusColor(status)}>
+                            {status}
+                          </Badge>
+                        </TableCell>
+                        {showCount && (
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={countValues[item.name] || ''}
+                              onChange={(e) => setCountValues({ ...countValues, [item.name]: e.target.value })}
+                              placeholder="New count"
+                              className="w-20 h-8 text-xs"
+                            />
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </div>
