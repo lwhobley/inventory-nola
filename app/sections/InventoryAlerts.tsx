@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, AlertTriangle, TrendingDown, Send, Bell, Settings, Trash2 } from 'lucide-react';
+import { AlertCircle, AlertTriangle, TrendingDown, Send, Bell, Settings, Trash2, X } from 'lucide-react';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 interface AlertRule {
@@ -23,7 +23,7 @@ interface AlertRule {
   created_at?: string;
 }
 
-interface Alert {
+interface AlertItem {
   id?: string;
   item_name: string;
   location: string;
@@ -35,15 +35,167 @@ interface Alert {
   resolved?: boolean;
 }
 
+interface AlertWithSwipe extends AlertItem {
+  offsetX?: number;
+  isDragging?: boolean;
+}
+
 const LOCATIONS = ['Cafe du Monde Kiosk', 'Storyland Snacks', 'Morning Call Stand', 'Carousel Bar', 'Pavilion Grill'];
 
+// Swipeable Alert Card Component
+function SwipeableAlertCard({ 
+  alert, 
+  onRemove, 
+  onSend,
+  urgencyColor,
+  icon: Icon 
+}: { 
+  alert: AlertWithSwipe; 
+  onRemove: () => void; 
+  onSend: () => void;
+  urgencyColor: (severity: string) => string;
+  icon: any;
+}) {
+  const [offsetX, setOffsetX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const SWIPE_THRESHOLD = 100;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setStartX(e.touches[0].clientX);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentX = e.touches[0].clientX;
+    const diff = currentX - startX;
+    
+    // Only allow swiping to the right (positive values)
+    if (diff > 0) {
+      setOffsetX(Math.min(diff, 120));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (offsetX > SWIPE_THRESHOLD) {
+      // Swipe threshold reached - remove
+      onRemove();
+    } else {
+      // Snap back
+      setOffsetX(0);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setStartX(e.clientX);
+    setIsDragging(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const currentX = e.clientX;
+    const diff = currentX - startX;
+    
+    if (diff > 0) {
+      setOffsetX(Math.min(diff, 120));
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    if (offsetX > SWIPE_THRESHOLD) {
+      onRemove();
+    } else {
+      setOffsetX(0);
+    }
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove as any);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove as any);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, offsetX]);
+
+  const borderColor = alert.severity === 'critical' 
+    ? 'border-red-200 bg-red-50' 
+    : alert.severity === 'warning' 
+    ? 'border-amber-200 bg-amber-50' 
+    : 'border-blue-200 bg-blue-50';
+
+  const textColor = alert.severity === 'critical' 
+    ? 'text-red-700' 
+    : alert.severity === 'warning' 
+    ? 'text-amber-700' 
+    : 'text-blue-700';
+
+  return (
+    <div 
+      ref={cardRef}
+      className="relative overflow-hidden rounded-lg"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      style={{ userSelect: 'none', cursor: isDragging ? 'grabbing' : 'grab' }}
+    >
+      {/* Delete background */}
+      <div className="absolute inset-0 bg-red-500 flex items-center justify-end pr-4">
+        <X className="w-5 h-5 text-white" />
+      </div>
+
+      {/* Card content */}
+      <Card className={`border ${borderColor} relative z-10 transition-transform`} 
+            style={{ transform: `translateX(${offsetX}px)` }}>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Icon className={`w-5 h-5 flex-shrink-0 ${textColor}`} />
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900">{alert.item_name}</p>
+                <p className="text-sm text-slate-600">{alert.location}</p>
+                <p className={`text-xs ${textColor} mt-1`}>
+                  Current: {alert.current_stock} units | Threshold: {alert.threshold} units
+                </p>
+              </div>
+            </div>
+            <Button 
+              size="sm" 
+              onClick={onSend}
+              className={`flex-shrink-0 ml-2 gap-1 ${
+                alert.severity === 'critical' 
+                  ? 'bg-red-600 hover:bg-red-700' 
+                  : 'bg-slate-600 hover:bg-slate-700'
+              }`}
+            >
+              <Send className="w-3 h-3" /> 
+              <span className="hidden sm:inline">Alert</span>
+            </Button>
+          </div>
+          <p className="text-xs text-slate-400 mt-2">
+            💡 Swipe right to dismiss
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function InventoryAlerts() {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = useState<AlertWithSwipe[]>([]);
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showRuleDialog, setShowRuleDialog] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
   const [newRule, setNewRule] = useState<Partial<AlertRule>>({
     alert_type: 'critical',
     enabled: true,
@@ -75,7 +227,7 @@ export default function InventoryAlerts() {
       }
       
       // Generate alerts based on current inventory
-      const generatedAlerts: Alert[] = [];
+      const generatedAlerts: AlertWithSwipe[] = [];
       
       data?.forEach((item: any) => {
         const { current_stock, par_level, name, location } = item;
@@ -201,7 +353,7 @@ export default function InventoryAlerts() {
     }
   };
 
-  const handleSendAlert = async (alert: Alert) => {
+  const handleSendAlert = async (alert: AlertWithSwipe) => {
     try {
       // In a real app, this would send an email/SMS
       setSuccessMessage(`Alert sent for ${alert.item_name} at ${alert.location}`);
@@ -212,9 +364,25 @@ export default function InventoryAlerts() {
     }
   };
 
-  const criticalAlerts = alerts.filter(a => a.severity === 'critical');
-  const warningAlerts = alerts.filter(a => a.severity === 'warning');
-  const infoAlerts = alerts.filter(a => a.severity === 'info');
+  const handleDismissAlert = (alertIndex: number) => {
+    const newDismissed = new Set(dismissedAlerts);
+    newDismissed.add(`${alerts[alertIndex].item_name}-${alerts[alertIndex].location}`);
+    setDismissedAlerts(newDismissed);
+  };
+
+  const visibleAlerts = alerts.filter((alert, idx) => 
+    !dismissedAlerts.has(`${alert.item_name}-${alert.location}`)
+  );
+
+  const criticalAlerts = visibleAlerts.filter(a => a.severity === 'critical');
+  const warningAlerts = visibleAlerts.filter(a => a.severity === 'warning');
+  const infoAlerts = visibleAlerts.filter(a => a.severity === 'info');
+
+  const urgencyColor = (severity: string) => {
+    if (severity === 'critical') return 'text-red-700';
+    if (severity === 'warning') return 'text-amber-700';
+    return 'text-blue-700';
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -317,26 +485,14 @@ export default function InventoryAlerts() {
             <AlertCircle className="w-5 h-5" /> Critical Alerts ({criticalAlerts.length})
           </h3>
           {criticalAlerts.map((alert, i) => (
-            <Card key={i} className="border-red-200 bg-red-50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-slate-900">{alert.item_name}</p>
-                    <p className="text-sm text-slate-600">{alert.location}</p>
-                    <p className="text-xs text-red-700 mt-1">
-                      Current: {alert.current_stock} units | Threshold: {alert.threshold} units
-                    </p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleSendAlert(alert)}
-                    className="gap-1 bg-red-600 hover:bg-red-700"
-                  >
-                    <Send className="w-3 h-3" /> Alert
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SwipeableAlertCard 
+              key={i}
+              alert={alert}
+              onRemove={() => handleDismissAlert(alerts.indexOf(alert))}
+              onSend={() => handleSendAlert(alert)}
+              urgencyColor={urgencyColor}
+              icon={AlertCircle}
+            />
           ))}
         </div>
       )}
@@ -348,26 +504,14 @@ export default function InventoryAlerts() {
             <AlertTriangle className="w-5 h-5" /> Warnings ({warningAlerts.length})
           </h3>
           {warningAlerts.map((alert, i) => (
-            <Card key={i} className="border-amber-200 bg-amber-50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-slate-900">{alert.item_name}</p>
-                    <p className="text-sm text-slate-600">{alert.location}</p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      Current: {alert.current_stock} units | Threshold: {alert.threshold} units
-                    </p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleSendAlert(alert)}
-                    variant="outline"
-                  >
-                    <Send className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SwipeableAlertCard 
+              key={i}
+              alert={alert}
+              onRemove={() => handleDismissAlert(alerts.indexOf(alert))}
+              onSend={() => handleSendAlert(alert)}
+              urgencyColor={urgencyColor}
+              icon={AlertTriangle}
+            />
           ))}
         </div>
       )}
@@ -379,24 +523,19 @@ export default function InventoryAlerts() {
             <TrendingDown className="w-5 h-5" /> Overstocked ({infoAlerts.length})
           </h3>
           {infoAlerts.map((alert, i) => (
-            <Card key={i} className="border-blue-200 bg-blue-50">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-semibold text-slate-900">{alert.item_name}</p>
-                    <p className="text-sm text-slate-600">{alert.location}</p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Current: {alert.current_stock} units | Par: {alert.threshold} units
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SwipeableAlertCard 
+              key={i}
+              alert={alert}
+              onRemove={() => handleDismissAlert(alerts.indexOf(alert))}
+              onSend={() => handleSendAlert(alert)}
+              urgencyColor={urgencyColor}
+              icon={TrendingDown}
+            />
           ))}
         </div>
       )}
 
-      {alerts.length === 0 && (
+      {visibleAlerts.length === 0 && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-8 text-center">
             <Bell className="w-12 h-12 text-green-400 mx-auto mb-2" />
