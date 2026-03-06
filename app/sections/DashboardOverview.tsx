@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, AlertTriangle, Play, FileText, Trash2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Bell } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 interface DashboardOverviewProps {
   setActiveTab: (tab: string) => void;
@@ -27,17 +28,62 @@ const SPARKLINE_DATA = {
   ],
 };
 
-const ALERTS = [
-  { id: 1, type: 'critical', message: 'Beignet Mix below par level at Cafe du Monde Kiosk', time: '12 min ago' },
-  { id: 2, type: 'warning', message: 'Hot dog buns variance detected at Pavilion Grill (8.2%)', time: '45 min ago' },
-  { id: 3, type: 'warning', message: 'Waste spike: 14 ice cream units expired at Storyland Snacks', time: '1 hr ago' },
-  { id: 4, type: 'info', message: 'Morning count completed at Morning Call Stand', time: '2 hrs ago' },
-  { id: 5, type: 'critical', message: 'Soft drink syrup critically low at Carousel Bar', time: '3 hrs ago' },
-];
-
 export default function DashboardOverview({ setActiveTab, selectedLocation }: DashboardOverviewProps) {
   const [mounted, setMounted] = useState(false);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  
   useEffect(() => { setMounted(true); }, []);
+  
+  // Load real-time alerts from inventory
+  useEffect(() => {
+    const loadAlerts = async () => {
+      try {
+        const supabase = getSupabaseAdmin();
+        const { data, error: err } = await supabase
+          .from('inventory_items')
+          .select('*')
+          .or(`current_stock.eq.0,current_stock.lt.par_level`);
+        
+        if (err || !data) {
+          setAlerts([]);
+          return;
+        }
+        
+        // Generate alerts from actual inventory
+        const generatedAlerts = data.slice(0, 5).map((item: any, idx: number) => {
+          let type = 'info';
+          let message = '';
+          
+          if (item.current_stock === 0) {
+            type = 'critical';
+            message = `${item.name} is out of stock at ${item.location}`;
+          } else if (item.current_stock < item.par_level * 0.2) {
+            type = 'critical';
+            message = `${item.name} critically low at ${item.location} (${item.current_stock}/${item.par_level})`;
+          } else if (item.current_stock < item.par_level * 0.5) {
+            type = 'warning';
+            message = `${item.name} below par at ${item.location} (${item.current_stock}/${item.par_level})`;
+          }
+          
+          return {
+            id: idx,
+            type,
+            message,
+            time: 'Just now'
+          };
+        }).filter(a => a.message); // Only show actual alerts
+        
+        setAlerts(generatedAlerts);
+      } catch (err) {
+        console.error('Load alerts error:', err);
+        setAlerts([]);
+      }
+    };
+    
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const kpis = [
     { label: 'Total Revenue', value: '$14,820', trend: '+8.3%', up: true, data: SPARKLINE_DATA.revenue, color: '#0d9488' },
@@ -85,18 +131,38 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <Card className="lg:col-span-3 border-slate-200 shadow-sm">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-slate-900">Recent Alerts</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold text-slate-900">Recent Alerts</CardTitle>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setActiveTab('alerts')}
+                className="text-xs"
+              >
+                View All
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {ALERTS.map((alert) => (
-              <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg ${alert.type === 'critical' ? 'bg-red-50 border border-red-100' : alert.type === 'warning' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'}`}>
-                <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${alert.type === 'critical' ? 'text-red-500' : alert.type === 'warning' ? 'text-amber-500' : 'text-slate-400'}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-700">{alert.message}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{alert.time}</p>
-                </div>
+          <CardContent>
+            {alerts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Bell className="w-8 h-8 text-green-400 mb-2" />
+                <p className="text-slate-700 font-medium">All inventory levels healthy!</p>
+                <p className="text-xs text-slate-500 mt-1">No alerts at this time.</p>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-2">
+                {alerts.map((alert) => (
+                  <div key={alert.id} className={`flex items-start gap-3 p-3 rounded-lg ${alert.type === 'critical' ? 'bg-red-50 border border-red-100' : alert.type === 'warning' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 border border-slate-100'}`}>
+                    <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${alert.type === 'critical' ? 'text-red-500' : alert.type === 'warning' ? 'text-amber-500' : 'text-slate-400'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-700">{alert.message}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{alert.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
