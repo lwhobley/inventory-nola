@@ -172,7 +172,7 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
           </CardHeader>
           <CardContent className="space-y-3">
             <Button onClick={() => setActiveTab('inventory')} variant="outline" className="w-full justify-start gap-3 h-12 text-left border-slate-200 hover:bg-teal-50 hover:border-teal-200 hover:text-teal-700">
-              <Play className="w-5 h-5 text-teal-600" />
+              <TrendingUp className="w-5 h-5 text-teal-600" />
               <div>
                 <p className="text-sm font-medium">Start Morning Count</p>
                 <p className="text-xs text-slate-400">Physical inventory check</p>
@@ -186,7 +186,7 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
               </div>
             </Button>
             <Button onClick={() => setActiveTab('financial')} variant="outline" className="w-full justify-start gap-3 h-12 text-left border-slate-200 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700">
-              <FileText className="w-5 h-5 text-emerald-600" />
+              <TrendingDown className="w-5 h-5 text-emerald-600" />
               <div>
                 <p className="text-sm font-medium">Generate Report</p>
                 <p className="text-xs text-slate-400">Financial insights & COGS</p>
