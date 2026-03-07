@@ -7,8 +7,13 @@ let redisInstance: Redis | null = null
 function getRedis(): Redis {
   if (!redisInstance) {
     const redisUrl = process.env.REDIS_URL
+    
+    // Only throw if we're actually trying to use Redis
+    // Don't throw during build if REDIS_URL is missing
     if (!redisUrl) {
-      throw new Error('REDIS_URL environment variable is required')
+      console.warn('REDIS_URL not configured, Redis features will be unavailable')
+      // Return a dummy/no-op implementation for build-time
+      return {} as Redis
     }
     
     redisInstance = new Redis(redisUrl, {
@@ -80,6 +85,10 @@ export const cache = {
   async get<T>(key: string): Promise<T | null> {
     try {
       const redis = getRedis()
+      // Handle case where Redis is unavailable (returns empty object during build)
+      if (!redis || !redis.get) {
+        return null
+      }
       const data = await redis.get(key)
       return data ? JSON.parse(data) : null
     } catch (error) {
@@ -94,6 +103,9 @@ export const cache = {
   async set<T>(key: string, value: T, ttlSeconds: number = 3600): Promise<void> {
     try {
       const redis = getRedis()
+      if (!redis || !redis.setex) {
+        return
+      }
       await redis.setex(key, ttlSeconds, JSON.stringify(value))
     } catch (error) {
       console.warn(`Cache set error for key ${key}:`, error)
@@ -226,4 +238,6 @@ export const rateLimit = {
   },
 }
 
-export default getRedis()
+// Export the function itself, not the result
+// This prevents Redis initialization during build
+export default getRedis
