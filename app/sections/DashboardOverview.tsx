@@ -30,7 +30,7 @@ const SPARKLINE_DATA = {
 
 export default function DashboardOverview({ setActiveTab, selectedLocation }: DashboardOverviewProps) {
   const [mounted, setMounted] = useState(false);
-  const [alerts, setAlerts] = useState<any[]>([]);
+  const [alerts, setAlerts] = useState<{ id: number; type: string; message: string; time: string }[]>([]);
   
   useEffect(() => { setMounted(true); }, []);
   

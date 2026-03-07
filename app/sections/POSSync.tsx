@@ -107,7 +107,7 @@ export default function POSSync({ selectedLocation }: POSSyncProps) {
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold text-slate-900">Recent Transactions</CardTitle>
               <div className="flex items-center gap-1.5">
-                <Sync className="w-4 h-4 text-teal-600 animate-spin" />
+                <RefreshCw className="w-4 h-4 text-teal-600 animate-spin" />
                 <span className="text-xs text-teal-600 font-medium">Live</span>
               </div>
             </div>

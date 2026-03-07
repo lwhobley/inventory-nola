@@ -6,8 +6,12 @@ let redisInstance: Redis | null = null
 
 function getRedis(): Redis {
   if (!redisInstance) {
-    redisInstance = new Redis({
-      url: process.env.REDIS_URL || '',
+    const redisUrl = process.env.REDIS_URL
+    if (!redisUrl) {
+      throw new Error('REDIS_URL environment variable is required')
+    }
+    
+    redisInstance = new Redis(redisUrl, {
       password: process.env.REDIS_PASSWORD,
       retryStrategy: (times) => {
         const delay = Math.min(times * 50, 2000)

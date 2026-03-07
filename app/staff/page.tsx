@@ -18,10 +18,10 @@ export default function StaffManagement() {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ name: string; pin: string; role: 'staff' | 'manager'; location: string }>({
     name: '',
     pin: '',
-    role: 'staff' as const,
+    role: 'staff',
     location: 'Main Location',
   });
 
