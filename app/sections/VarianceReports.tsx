@@ -23,16 +23,7 @@ const LOCATIONS = ['All Locations', 'Cafe du Monde Kiosk', 'Storyland Snacks', '
 const DATE_RANGES = ['Today', 'Yesterday', 'Last 7 Days', 'Last 30 Days'];
 
 const VARIANCE_DATA = [
-  { item: 'Beignet Mix', theoretical: 45, physical: 12, variance: -33, pct: -73.3, dollarImpact: -105.60, cause: 'High consumption + spillage', location: 'Cafe du Monde Kiosk' },
-  { item: 'Hot Dog Buns', theoretical: 82, physical: 48, variance: -34, pct: -41.5, dollarImpact: -20.40, cause: 'Stale goods discarded', location: 'Pavilion Grill' },
-  { item: 'Soft Drink Syrup', theoretical: 8, physical: 3, variance: -5, pct: -62.5, dollarImpact: -45.00, cause: 'POS mapping overstated', location: 'Carousel Bar' },
-  { item: 'Rum', theoretical: 6, physical: 3, variance: -3, pct: -50.0, dollarImpact: -72.00, cause: 'Over-pouring suspected', location: 'Carousel Bar' },
-  { item: 'Ice Cream (Vanilla)', theoretical: 58, physical: 42, variance: -16, pct: -27.6, dollarImpact: -20.80, cause: 'Melted stock (freezer issue)', location: 'Storyland Snacks' },
-  { item: 'Lemonade Mix', theoretical: 7, physical: 5, variance: -2, pct: -28.6, dollarImpact: -7.00, cause: 'Preparation error', location: 'Storyland Snacks' },
-  { item: 'Coffee Beans', theoretical: 32, physical: 28, variance: -4, pct: -12.5, dollarImpact: -12.80, cause: 'Spillage during grinding', location: 'Morning Call Stand' },
-  { item: 'Nacho Cheese', theoretical: 8, physical: 6, variance: -2, pct: -25.0, dollarImpact: -6.00, cause: 'Over-preparation', location: 'Carousel Bar' },
-  { item: 'Frying Oil', theoretical: 12, physical: 8, variance: -4, pct: -33.3, dollarImpact: -28.00, cause: 'Changed more frequently than scheduled', location: 'Cafe du Monde Kiosk' },
-  { item: 'Popcorn Kernels', theoretical: 14, physical: 18, variance: 4, pct: 28.6, dollarImpact: 4.80, cause: 'Counting error (likely overstated)', location: 'Storyland Snacks' },
+  // No variance data until physical counts are conducted
 ];
 
 function varianceRowColor(pct: number) {

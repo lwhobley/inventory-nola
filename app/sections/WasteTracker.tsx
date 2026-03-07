@@ -29,23 +29,17 @@ const INVENTORY_ITEMS = [
 const UNITS = ['units', 'lbs', 'oz', 'gallons', 'bags', 'cases', 'scoops'];
 
 const INITIAL_WASTE_ENTRIES = [
-  { id: 1, item: 'Ice Cream (Vanilla)', qty: 14, unit: 'scoops', reason: 'Expired', notes: 'Freezer temp rose overnight', location: 'Storyland Snacks', date: '2026-03-02', cost: '$18.20' },
-  { id: 2, item: 'Hot Dog Buns', qty: 8, unit: 'units', reason: 'Quality Issue', notes: 'Stale from yesterday delivery', location: 'Pavilion Grill', date: '2026-03-02', cost: '$4.80' },
-  { id: 3, item: 'Beignet Mix', qty: 2, unit: 'lbs', reason: 'Spillage', notes: 'Dropped during prep', location: 'Cafe du Monde Kiosk', date: '2026-03-02', cost: '$6.40' },
-  { id: 4, item: 'Lemonade Mix', qty: 1, unit: 'gallons', reason: 'Preparation Error', notes: 'Mixed wrong ratio', location: 'Storyland Snacks', date: '2026-03-01', cost: '$3.50' },
-  { id: 5, item: 'Draft Beer (Abita)', qty: 3, unit: 'units', reason: 'Equipment Failure', notes: 'Draft line malfunction', location: 'Carousel Bar', date: '2026-03-01', cost: '$15.00' },
-  { id: 6, item: 'Nachos Chips', qty: 2, unit: 'bags', reason: 'Over-Preparation', notes: 'Slow afternoon', location: 'Carousel Bar', date: '2026-03-01', cost: '$5.60' },
-  { id: 7, item: 'Coffee Beans', qty: 4, unit: 'oz', reason: 'Spillage', notes: 'Grinder mishap', location: 'Morning Call Stand', date: '2026-03-01', cost: '$3.20' },
+  // No waste entries until manually logged
 ];
 
 const WEEKLY_WASTE_DATA = [
-  { day: 'Mon', value: 42 },
-  { day: 'Tue', value: 35 },
-  { day: 'Wed', value: 28 },
-  { day: 'Thu', value: 51 },
-  { day: 'Fri', value: 38 },
-  { day: 'Sat', value: 62 },
-  { day: 'Sun', value: 47 },
+  { day: 'Mon', value: 0 },
+  { day: 'Tue', value: 0 },
+  { day: 'Wed', value: 0 },
+  { day: 'Thu', value: 0 },
+  { day: 'Fri', value: 0 },
+  { day: 'Sat', value: 0 },
+  { day: 'Sun', value: 0 },
 ];
 
 export default function WasteTracker({ selectedLocation }: WasteTrackerProps) {
