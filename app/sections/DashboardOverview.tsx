@@ -15,16 +15,16 @@ interface DashboardOverviewProps {
 
 const SPARKLINE_DATA = {
   revenue: [
-    { v: 12400 }, { v: 13200 }, { v: 11800 }, { v: 14100 }, { v: 13500 }, { v: 15200 }, { v: 14800 },
+    { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 },
   ],
   cogs: [
-    { v: 4200 }, { v: 4500 }, { v: 4100 }, { v: 4800 }, { v: 4600 }, { v: 5100 }, { v: 4900 },
+    { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 },
   ],
   margin: [
-    { v: 66 }, { v: 65 }, { v: 67 }, { v: 66 }, { v: 65 }, { v: 67 }, { v: 67 },
+    { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 },
   ],
   waste: [
-    { v: 3.2 }, { v: 2.8 }, { v: 3.5 }, { v: 2.9 }, { v: 3.1 }, { v: 2.7 }, { v: 2.6 },
+    { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 }, { v: 0 },
   ],
 };
 
@@ -86,10 +86,10 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
   }, []);
 
   const kpis = [
-    { label: 'Total Revenue', value: '$14,820', trend: '+8.3%', up: true, data: SPARKLINE_DATA.revenue, color: '#0d9488' },
-    { label: 'Total COGS', value: '$4,946', trend: '+5.1%', up: true, data: SPARKLINE_DATA.cogs, color: '#ef4444' },
-    { label: 'Gross Margin', value: '66.6%', trend: '+1.2%', up: true, data: SPARKLINE_DATA.margin, color: '#10b981' },
-    { label: 'Waste %', value: '2.6%', trend: '-0.5%', up: false, data: SPARKLINE_DATA.waste, color: '#f59e0b' },
+    { label: 'Total Revenue', value: '$0.00', trend: '0%', up: false, data: SPARKLINE_DATA.revenue, color: '#0d9488' },
+    { label: 'Total COGS', value: '$0.00', trend: '0%', up: false, data: SPARKLINE_DATA.cogs, color: '#ef4444' },
+    { label: 'Gross Margin', value: '0%', trend: '0%', up: false, data: SPARKLINE_DATA.margin, color: '#10b981' },
+    { label: 'Waste %', value: '0%', trend: '0%', up: false, data: SPARKLINE_DATA.waste, color: '#f59e0b' },
   ];
 
   return (

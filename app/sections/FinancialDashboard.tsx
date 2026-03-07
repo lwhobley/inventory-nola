@@ -20,24 +20,24 @@ interface FinancialDashboardProps {
 const AGENT_ID = '69a5b1a3f2d0d9c8063d1a47';
 
 const REVENUE_COGS_DATA = [
-  { location: 'Cafe du Monde', revenue: 4280, cogs: 1420 },
-  { location: 'Storyland', revenue: 2150, cogs: 780 },
-  { location: 'Morning Call', revenue: 3640, cogs: 1210 },
-  { location: 'Carousel Bar', revenue: 2870, cogs: 890 },
-  { location: 'Pavilion Grill', revenue: 1880, cogs: 646 },
+  { location: 'Cafe du Monde', revenue: 0, cogs: 0 },
+  { location: 'Storyland', revenue: 0, cogs: 0 },
+  { location: 'Morning Call', revenue: 0, cogs: 0 },
+  { location: 'Carousel Bar', revenue: 0, cogs: 0 },
+  { location: 'Pavilion Grill', revenue: 0, cogs: 0 },
 ];
 
 const MARGIN_TREND = [
-  { period: 'Week 1', margin: 64.2 }, { period: 'Week 2', margin: 65.8 }, { period: 'Week 3', margin: 63.5 },
-  { period: 'Week 4', margin: 66.1 }, { period: 'Week 5', margin: 67.3 }, { period: 'Week 6', margin: 66.6 },
+  { period: 'Week 1', margin: 0 }, { period: 'Week 2', margin: 0 }, { period: 'Week 3', margin: 0 },
+  { period: 'Week 4', margin: 0 }, { period: 'Week 5', margin: 0 }, { period: 'Week 6', margin: 0 },
 ];
 
 const WASTE_BY_CATEGORY = [
-  { name: 'Expired', value: 42, color: '#ef4444' },
-  { name: 'Spillage', value: 22, color: '#f59e0b' },
-  { name: 'Prep Error', value: 18, color: '#3b82f6' },
-  { name: 'Equipment', value: 11, color: '#8b5cf6' },
-  { name: 'Other', value: 7, color: '#6b7280' },
+  { name: 'Expired', value: 0, color: '#ef4444' },
+  { name: 'Spillage', value: 0, color: '#f59e0b' },
+  { name: 'Prep Error', value: 0, color: '#3b82f6' },
+  { name: 'Equipment', value: 0, color: '#8b5cf6' },
+  { name: 'Other', value: 0, color: '#6b7280' },
 ];
 
 const PERIODS = ['This Week', 'Last Week', 'This Month', 'Last Month'];
