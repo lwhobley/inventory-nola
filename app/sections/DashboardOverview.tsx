@@ -203,11 +203,11 @@ export default function DashboardOverview({ setActiveTab, selectedLocation }: Da
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {[
-              { name: 'Cafe du Monde Kiosk', rev: '$4,280', items: 2, status: 'warning' },
-              { name: 'Storyland Snacks', rev: '$2,150', items: 0, status: 'ok' },
-              { name: 'Morning Call Stand', rev: '$3,640', items: 1, status: 'warning' },
-              { name: 'Carousel Bar', rev: '$2,870', items: 3, status: 'critical' },
-              { name: 'Pavilion Grill', rev: '$1,880', items: 0, status: 'ok' },
+              { name: 'Cafe du Monde Kiosk', rev: '$0.00', items: 2, status: 'warning' },
+              { name: 'Storyland Snacks', rev: '$0.00', items: 0, status: 'ok' },
+              { name: 'Morning Call Stand', rev: '$0.00', items: 1, status: 'warning' },
+              { name: 'Carousel Bar', rev: '$0.00', items: 3, status: 'critical' },
+              { name: 'Pavilion Grill', rev: '$0.00', items: 0, status: 'ok' },
             ].map((loc) => (
               <div key={loc.name} className="p-3 rounded-lg border border-slate-200 bg-white">
                 <p className="text-xs font-medium text-slate-600 truncate">{loc.name}</p>

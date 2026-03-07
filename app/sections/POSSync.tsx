@@ -11,18 +11,7 @@ interface POSSyncProps {
 }
 
 const POS_TRANSACTIONS = [
-  { id: 'TXN-4821', time: '10:42 AM', items: 'Beignets (3), Cafe au Lait (2)', total: '$24.50', location: 'Cafe du Monde Kiosk', status: 'synced' },
-  { id: 'TXN-4822', time: '10:38 AM', items: 'Hot Dog Combo', total: '$9.99', location: 'Pavilion Grill', status: 'synced' },
-  { id: 'TXN-4823', time: '10:35 AM', items: 'Ice Cream Sundae, Soft Drink', total: '$11.50', location: 'Storyland Snacks', status: 'synced' },
-  { id: 'TXN-4824', time: '10:31 AM', items: 'Beignets (6)', total: '$14.99', location: 'Morning Call Stand', status: 'pending' },
-  { id: 'TXN-4825', time: '10:28 AM', items: 'Draft Beer (2), Nachos', total: '$28.00', location: 'Carousel Bar', status: 'synced' },
-  { id: 'TXN-4826', time: '10:24 AM', items: 'Cafe au Lait, Chicory Coffee', total: '$9.50', location: 'Cafe du Monde Kiosk', status: 'synced' },
-  { id: 'TXN-4827', time: '10:20 AM', items: 'Lemonade (3)', total: '$10.50', location: 'Storyland Snacks', status: 'error' },
-  { id: 'TXN-4828', time: '10:15 AM', items: 'Grilled Chicken Sandwich, Fries', total: '$14.99', location: 'Pavilion Grill', status: 'synced' },
-  { id: 'TXN-4829', time: '10:11 AM', items: 'Cotton Candy (2)', total: '$8.00', location: 'Storyland Snacks', status: 'synced' },
-  { id: 'TXN-4830', time: '10:05 AM', items: 'Hurricane Cocktail (2)', total: '$22.00', location: 'Carousel Bar', status: 'synced' },
-  { id: 'TXN-4831', time: '9:58 AM', items: 'Beignets (12), OJ (2)', total: '$32.98', location: 'Cafe du Monde Kiosk', status: 'synced' },
-  { id: 'TXN-4832', time: '9:52 AM', items: 'Popcorn, Soft Drink', total: '$8.50', location: 'Storyland Snacks', status: 'synced' },
+  // No POS system connected - transactions will appear here when integrated
 ];
 
 const RECIPE_MAPPINGS = [
